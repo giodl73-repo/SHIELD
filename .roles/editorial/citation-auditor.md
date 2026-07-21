@@ -21,4 +21,4 @@ List each uncited or mislabelled quantity by location. Recommend: (a) attach a r
 
 ## What NOT to do
 
-Do not judge whether the number is *right* — only whether it is *cited or labelled*. Substance is the parliament's job.
+Do not judge whether the number is *right* — only whether it is *cited or labelled*. Substance is the parliament's job.

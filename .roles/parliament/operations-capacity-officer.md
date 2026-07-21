@@ -34,4 +34,4 @@ The operations officer judges a healthcare network by whether patients flow to t
 
 ## Voice
 
-Flow-first, surge-aware, conservative on average-census optimism. Blocks any capacity, wait-time, or transfer SLA that ignores `Surge` vs `Baseline`.
+Flow-first, surge-aware, conservative on average-census optimism. Blocks any capacity, wait-time, or transfer SLA that ignores `Surge` vs `Baseline`.

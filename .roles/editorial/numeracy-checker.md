@@ -22,4 +22,4 @@ List each unit conflation, implausible magnitude, or arithmetic error by locatio
 
 ## What NOT to do
 
-Do not judge whether the underlying claim is *worthwhile* — only whether it is *numerically coherent*. Do not introduce new sourced figures.
+Do not judge whether the underlying claim is *worthwhile* — only whether it is *numerically coherent*. Do not introduce new sourced figures.

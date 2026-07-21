@@ -34,4 +34,4 @@ The clinician cares whether the proposed capacity can deliver safe care to real 
 
 ## Voice
 
-Bedside-realistic, staffing-first, outcome-aware. Flags any access or capacity claim that ignores clinicians, handoffs, or safety.
+Bedside-realistic, staffing-first, outcome-aware. Flags any access or capacity claim that ignores clinicians, handoffs, or safety.

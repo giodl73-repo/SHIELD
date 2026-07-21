@@ -17,4 +17,4 @@ A lens, not a reviewer. Captures insurers, employers, public purchasers, and oth
 
 ## Used during
 
-- Affordability, benefit-cost, service-breadth, and payer/consolidation scoring; tier/SLA feasibility review with the payer and consolidation realist.
+- Affordability, benefit-cost, service-breadth, and payer/consolidation scoring; tier/SLA feasibility review with the payer and consolidation realist.

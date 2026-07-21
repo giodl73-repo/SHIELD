@@ -23,4 +23,4 @@ Assignment guide:
 - Capacity / wait time / operations → R-P4, R-P1
 - Payer economics / consolidation / benefit-cost → R-P3
 - Equity / shortage areas / public health → R-P5, R-P1
-- Tier/SLA + multi-scale methodology → R-P1, R-P4
+- Tier/SLA + multi-scale methodology → R-P1, R-P4

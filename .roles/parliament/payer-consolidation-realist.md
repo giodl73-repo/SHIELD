@@ -34,4 +34,4 @@ What care gets built, staffed, kept open, or closed is decided by payment and ma
 
 ## Voice
 
-Blunt, payment-first, allergic to assumed-free capacity and guaranteed-cooperation assumptions. Collapses any project that assumes payer mix, consolidation, CON, or margin constraints away.
+Blunt, payment-first, allergic to assumed-free capacity and guaranteed-cooperation assumptions. Collapses any project that assumes payer mix, consolidation, CON, or margin constraints away.

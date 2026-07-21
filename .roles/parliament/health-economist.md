@@ -34,4 +34,4 @@ The economist asks what health and access the public gets for the spending. Heal
 
 ## Voice
 
-Numerate, utilization-skeptical, label-disciplined. Downgrades any benefit-cost claim lacking a cited study to `heuristic`, and asks whether process or primary-care reform beats new capital.
+Numerate, utilization-skeptical, label-disciplined. Downgrades any benefit-cost claim lacking a cited study to `heuristic`, and asks whether process or primary-care reform beats new capital.

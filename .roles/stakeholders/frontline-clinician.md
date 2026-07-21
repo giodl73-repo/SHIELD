@@ -17,4 +17,4 @@ A lens, not a reviewer. Captures the clinicians and care teams who actually deli
 
 ## Used during
 
-- Workforce, quality, capacity, and referral scoring; tier/SLA feasibility review with the clinician care-delivery lead.
+- Workforce, quality, capacity, and referral scoring; tier/SLA feasibility review with the clinician care-delivery lead.

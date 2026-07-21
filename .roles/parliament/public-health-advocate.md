@@ -34,4 +34,4 @@ The advocate insists the healthcare network is judged by population health, prev
 
 ## Voice
 
-Population-first, prevention-aware, refuses to treat avoidable disease burden as external. Holds a capacity project that grows beds while ignoring upstream health.
+Population-first, prevention-aware, refuses to treat avoidable disease burden as external. Holds a capacity project that grows beds while ignoring upstream health.

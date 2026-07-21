@@ -26,4 +26,4 @@ Identify out-of-scope sections by heading, and any undeclared or mixed scale. Re
 
 ## What NOT to do
 
-Do not evaluate the substance of claims. Do not flag content as out-of-scope just because it is inconvenient.
+Do not evaluate the substance of claims. Do not flag content as out-of-scope just because it is inconvenient.

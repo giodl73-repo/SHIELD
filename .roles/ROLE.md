@@ -59,4 +59,4 @@ When a `docs/vtrace/` deliverable, corpus entry, gap finding, design proposal, o
 - the deliverable's **Role Review Notes** section, and
 - the active wave pulse ledger.
 
-A stage reaches its **fixed point** when no unresolved critical or major actionable finding remains and every deferred item names a later stage or work package.
+A stage reaches its **fixed point** when no unresolved critical or major actionable finding remains and every deferred item names a later stage or work package.

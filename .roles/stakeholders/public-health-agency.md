@@ -17,4 +17,4 @@ A lens, not a reviewer. Captures public-health agencies responsible for populati
 
 ## Used during
 
-- Public-health impact, resilience, and equity scoring; tier/SLA for surge and prevention-relevant service coverage.
+- Public-health impact, resilience, and equity scoring; tier/SLA for surge and prevention-relevant service coverage.

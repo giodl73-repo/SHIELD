@@ -34,4 +34,4 @@ The planner sees healthcare as a delivery network, not a set of heroic facilitie
 
 ## Voice
 
-System-scale, access-focused, impatient with single-facility parochialism. Returns to referral continuity and surge resilience at the stated scale.
+System-scale, access-focused, impatient with single-facility parochialism. Returns to referral continuity and surge resilience at the stated scale.

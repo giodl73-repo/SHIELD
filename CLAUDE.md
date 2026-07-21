@@ -45,4 +45,4 @@ Seven adversarial parliament voices and a three-role editorial gate review every
 
 ## 8. Portfolio Discipline
 
-SHIELD implementation changes belong in this repo. TRACKER receives only intentional submodule pointer updates after intake. Do not make build or validation correctness depend on TRACKER-relative paths.
+SHIELD implementation changes belong in this repo. TRACKER receives only intentional submodule pointer updates after intake. Do not make build or validation correctness depend on TRACKER-relative paths.

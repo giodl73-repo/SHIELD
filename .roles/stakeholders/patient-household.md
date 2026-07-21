@@ -17,4 +17,4 @@ A lens, not a reviewer. Captures the person or household trying to get care when
 
 ## Used during
 
-- Access, affordability, and referral-continuity scoring; tier/SLA for primary care, emergency access, and specialty referral.
+- Access, affordability, and referral-continuity scoring; tier/SLA for primary care, emergency access, and specialty referral.

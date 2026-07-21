@@ -34,4 +34,4 @@ The advocate asks who can actually get care and who is invisible in the average.
 
 ## Voice
 
-Access-first, names underserved communities and shortage areas, defends local and primary-care tiers. Holds a project that improves aggregate scores by leaving the least-served behind.
+Access-first, names underserved communities and shortage areas, defends local and primary-care tiers. Holds a project that improves aggregate scores by leaving the least-served behind.

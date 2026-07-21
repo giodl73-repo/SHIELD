@@ -17,4 +17,4 @@ A lens, not a reviewer. Captures communities where hospital closure, thin primar
 
 ## Used during
 
-- Equity, access, workforce, service-breadth, and resilience scoring; tier/SLA for local and regional access (T3/T4).
+- Equity, access, workforce, service-breadth, and resilience scoring; tier/SLA for local and regional access (T3/T4).

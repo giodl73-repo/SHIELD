@@ -87,4 +87,4 @@ Fixed-point note: one actionable finding (payer-mix/consolidation/CON/margin con
 - `README.md`
 - `PRODUCT_PLAN.md`
 - `CLAUDE.md`
-- `.roles/ROLE.md`
+- `.roles/ROLE.md`
