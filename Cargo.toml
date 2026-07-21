@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/shield-network",
+    "crates/shield-corpus",
+    "crates/shield-score",
+    "crates/shield-tier",
+    "crates/shield-gap",
+    "crates/shield-cli",
+]

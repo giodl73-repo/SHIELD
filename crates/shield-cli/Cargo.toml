@@ -1,0 +1,13 @@
+[package]
+name = "shield-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+shield-network = { path = "../shield-network" }
+shield-corpus = { path = "../shield-corpus" }
+shield-score = { path = "../shield-score" }
+shield-tier = { path = "../shield-tier" }
+shield-gap = { path = "../shield-gap" }
