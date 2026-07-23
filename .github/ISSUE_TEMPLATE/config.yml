@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: SHIELD open adoption guide
+    url: https://github.com/giodl73-repo/SHIELD/blob/master/docs/adoption/README.md
+    about: Start here before proposing aggregate healthcare-access review.
