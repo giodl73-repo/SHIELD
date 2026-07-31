@@ -1,0 +1,29 @@
+{
+  "source": {
+    "publisher": "Minnesota Department of Health",
+    "dataset_title": "Minnesota Stroke System Coverage: Drive Time to Designated Stroke System Hospitals",
+    "landing_page": "https://www.health.state.mn.us/diseases/cardiovascular/stroke/system.html",
+    "map_url": "https://www.health.state.mn.us/diseases/cardiovascular/documents/drvtimemap.pdf",
+    "page_updated": "2026-07-21",
+    "map_vintage": "2026-07",
+    "captured": "2026-07-31",
+    "pdf_pages": 1,
+    "pdf_bytes": 333247,
+    "pdf_sha256": "490fc7ffc2c5af244ceafb35459b9b1c59907a6b66991a972d309d9ea1c130c4"
+  },
+  "state": "Minnesota",
+  "designated_stroke_hospitals": 123,
+  "population_within_30_minute_drive_percent": 97,
+  "population_within_60_minute_drive_percent": 99,
+  "drive_time_is_modeled_population_coverage": true,
+  "condition_specific_emergency_access": true,
+  "actual_ems_transport_records_observed": false,
+  "patient_origin_destination_observed": false,
+  "county_estimates_published": false,
+  "machine_readable_geography_published": false,
+  "nationally_representative": false,
+  "uncovered_population_count_published": false,
+  "need_ready": false,
+  "candidate_ready": false,
+  "taxlane_admission_ready": false
+}

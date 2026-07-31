@@ -25,6 +25,8 @@ const CMS_INPATIENT_ORIGIN_DESTINATION_FIXTURE: &str =
     include_str!("../../../data/derived/cms-inpatient-origin-destination-2024.json");
 const NEMSIS_EMS_DESTINATION_FIXTURE: &str =
     include_str!("../../../data/derived/nemsis-ems-destination-2024.json");
+const MINNESOTA_STROKE_DRIVE_TIME_FIXTURE: &str =
+    include_str!("../../../data/derived/minnesota-stroke-drive-time-2026-07.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1944,6 +1946,115 @@ pub fn nemsis_ems_destination_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct MinnesotaStrokeDriveTimeSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub landing_page: String,
+    pub map_url: String,
+    pub page_updated: String,
+    pub map_vintage: String,
+    pub captured: String,
+    pub pdf_pages: u64,
+    pub pdf_bytes: u64,
+    pub pdf_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct MinnesotaStrokeDriveTime {
+    pub source: MinnesotaStrokeDriveTimeSource,
+    pub state: String,
+    pub designated_stroke_hospitals: u64,
+    pub population_within_30_minute_drive_percent: u64,
+    pub population_within_60_minute_drive_percent: u64,
+    pub drive_time_is_modeled_population_coverage: bool,
+    pub condition_specific_emergency_access: bool,
+    pub actual_ems_transport_records_observed: bool,
+    pub patient_origin_destination_observed: bool,
+    pub county_estimates_published: bool,
+    pub machine_readable_geography_published: bool,
+    pub nationally_representative: bool,
+    pub uncovered_population_count_published: bool,
+    pub need_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl MinnesotaStrokeDriveTime {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        if self.state != "Minnesota"
+            || self.designated_stroke_hospitals == 0
+            || self.population_within_30_minute_drive_percent > 100
+            || self.population_within_60_minute_drive_percent > 100
+            || self.population_within_30_minute_drive_percent
+                > self.population_within_60_minute_drive_percent
+            || self.source.pdf_pages != 1
+            || self.source.pdf_bytes == 0
+            || self.source.pdf_sha256.len() != 64
+        {
+            return Err(AccessError::Invariant(
+                "Minnesota stroke drive-time facts do not reconcile".to_string(),
+            ));
+        }
+        if !self.drive_time_is_modeled_population_coverage
+            || !self.condition_specific_emergency_access
+            || self.actual_ems_transport_records_observed
+            || self.patient_origin_destination_observed
+            || self.county_estimates_published
+            || self.machine_readable_geography_published
+            || self.nationally_representative
+            || self.uncovered_population_count_published
+            || self.need_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "Minnesota stroke drive-time claim boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_minnesota_stroke_drive_time_fixture() -> Result<MinnesotaStrokeDriveTime, AccessError> {
+    let result: MinnesotaStrokeDriveTime =
+        serde_json::from_str(MINNESOTA_STROKE_DRIVE_TIME_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn minnesota_stroke_drive_time_baseline_json() -> Result<String, AccessError> {
+    let result = load_minnesota_stroke_drive_time_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.minnesota-stroke-drive-time.v1",
+        "source":result.source,
+        "identity":{"state":result.state,"designated_stroke_hospitals":result.designated_stroke_hospitals,"map_vintage":"2026-07"},
+        "coverage":{"population_within_30_minute_drive_percent":result.population_within_30_minute_drive_percent,"population_within_60_minute_drive_percent":result.population_within_60_minute_drive_percent,"modeled_population_drive_time":result.drive_time_is_modeled_population_coverage,"condition_specific_emergency_access":result.condition_specific_emergency_access},
+        "interpretation":{"allowed":"Minnesota Department of Health's published statewide population shares within modeled 30- and 60-minute drives of designated stroke-system hospitals","boundary":"The publication is a July 2026 statewide, condition-specific modeled coverage map, not observed EMS transport records, patient origin-destination flow, or a machine-readable county table.","held":"individual travel, EMS response or transport time, county estimates, national generalization, uncovered population counts, access need, adequacy, candidates, effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn minnesota_stroke_drive_time_held_pack_json() -> Result<String, AccessError> {
+    let result = load_minnesota_stroke_drive_time_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:minnesota-stroke-drive-time-2026-07:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"Minnesota statewide published coverage surface","population_or_network":"Minnesota residents and 123 designated stroke-system hospitals","ownership":"Minnesota Department of Health-designated stroke system","time_basis":"July 2026 map and July 21, 2026 landing-page state","unit_basis":"published percent of state population within modeled drive-time bands","included":"statewide 30- and 60-minute modeled drive-time coverage and designated-hospital count","excluded":"actual EMS trips, patient origin-destination records, county estimates, machine-readable geography, national inference, uncovered counts, need, candidates, effects, and costs"},
+        "source_custody":{"source_id":"MN-MDH-STROKE-DRIVE-TIME-2026-07","publisher":result.source.publisher,"source_path_or_url":result.source.map_url,"vintage":result.source.map_vintage,"capture_status":"published official map fixture with checksum, monotonic-band, and claim-boundary invariants","checksum_or_null":result.source.pdf_sha256},
+        "problem":{"baseline_metric":"share of Minnesota population within a modeled 30-minute drive of a designated stroke-system hospital","baseline_value_or_null":result.population_within_30_minute_drive_percent,"affected_population_or_exposure_or_null":null,"problem_boundary":"a high statewide coverage share does not locate or characterize the remaining population, actual emergency trips, service readiness, outcomes, or unmet need","within_60_minute_percent":result.population_within_60_minute_drive_percent,"designated_stroke_hospitals":result.designated_stroke_hospitals},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no hospital designation, EMS routing, siting, staffing, telemedicine, funding, or capital decision","existing_treatment_or_programmed_work":"current Minnesota Stroke System designations are baseline context, not a SHIELD intervention"},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"map methods, routing assumptions, population vintage, temporal traffic, weather, dispatch, EMS response, facility readiness, bypass, and patient condition are not quantified in the published summary","transferability_boundary":"Minnesota stroke-system coverage does not establish other conditions, states, national access, or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"published Minnesota stroke drive-time coverage context only","netting_rule":"modeled statewide coverage cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"state stroke-system access observation only","peer_goal_basis":null,"evaluation_horizons":"refresh with Minnesota Stroke System map","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"statewide percentage coverage can conceal concentrated geographic gaps and says nothing about actual response, transport, capacity, or outcomes","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not combine the percentage with EMS activation, ED visit, inpatient, or unique-patient counts","observation_cadence":"Minnesota Department of Health map update","reopen_triggers":"machine-readable substate coverage plus population counts, current service readiness, demand, outcomes, intervention, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on Minnesota Stroke System map update"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR TRN VET","non_additivity_rule":"stroke drive-time coverage is shared HLT/TRN/RUR context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"condition_specific_access_context_ready":true,"modeled_statewide_drive_time_ready":true,"actual_ems_transport_time_ready":result.actual_ems_transport_records_observed,"patient_origin_destination_ready":result.patient_origin_destination_observed,"county_access_ready":result.county_estimates_published,"machine_readable_geography_ready":result.machine_readable_geography_published,"national_inference_ready":result.nationally_representative,"need_ready":result.need_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"statewide_modeled_coverage_claim_allowed":true,"individual_travel_claim_allowed":false,"county_access_claim_allowed":false,"national_access_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2483,5 +2594,38 @@ mod tests {
             false
         );
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn minnesota_stroke_drive_time_preserves_published_coverage() {
+        let result = load_minnesota_stroke_drive_time_fixture().unwrap();
+        assert_eq!(result.designated_stroke_hospitals, 123);
+        assert_eq!(result.population_within_30_minute_drive_percent, 97);
+        assert_eq!(result.population_within_60_minute_drive_percent, 99);
+        assert!(result.drive_time_is_modeled_population_coverage);
+    }
+
+    #[test]
+    fn minnesota_stroke_drive_time_is_not_observed_patient_travel() {
+        let result = load_minnesota_stroke_drive_time_fixture().unwrap();
+        assert!(!result.actual_ems_transport_records_observed);
+        assert!(!result.patient_origin_destination_observed);
+        assert!(!result.county_estimates_published);
+        assert!(!result.nationally_representative);
+    }
+
+    #[test]
+    fn minnesota_stroke_drive_time_pack_holds_need_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&minnesota_stroke_drive_time_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(
+            output["readiness"]["modeled_statewide_drive_time_ready"],
+            true
+        );
+        assert_eq!(output["readiness"]["county_access_ready"], false);
+        assert_eq!(output["readiness"]["need_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }
 }

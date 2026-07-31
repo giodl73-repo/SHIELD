@@ -51,6 +51,10 @@ where infrastructure methods do not transfer cleanly.
   46,733,668 911 activations, and 30,123,274 destination-coded events, including
   27,863,074 routed to hospital or freestanding emergency departments, while
   preserving voluntary reporting and restricted public geography.
+- A July 2026 Minnesota stroke-system access benchmark with 123 designated
+  hospitals, 97% of residents within a modeled 30-minute drive, and 99% within
+  60 minutes, while separating modeled statewide coverage from actual EMS
+  trips, county results, national inference, need, and adequacy.
 
 ## Next work
 
@@ -58,8 +62,8 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add patient-relevant travel time or publicly usable emergency-specific flow
-   linking incident origins to service locations across county boundaries.
+1. Add machine-readable substate emergency access coverage or publicly usable
+   patient flow linking incident origins to service locations.
 2. Add total-population demand and current emergency operations before testing
    a specific access or delivery intervention.
 3. Keep county class, formal shortage designation, facility presence, available

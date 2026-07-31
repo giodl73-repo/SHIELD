@@ -309,6 +309,24 @@ table denominators differ, remote-county coverage is not complete, and public
 state/county/ZIP identifiers are restricted. Local access, need, adequacy,
 candidates, costs, and savings remain held.
 
+### Condition-specific modeled drive-time coverage
+
+Minnesota Department of Health's July 2026 stroke-system map supplies the
+first current, emergency-service-specific drive-time coverage benchmark:
+
+| Minnesota stroke-system result | Count or value |
+|---|---:|
+| Designated stroke hospitals | 123 |
+| Population within a modeled 30-minute drive | 97% |
+| Population within a modeled 60-minute drive | 99% |
+
+This is meaningful access evidence: it measures statewide population coverage
+to facilities designated for a time-sensitive condition. It is not observed
+ambulance travel, a patient origin-destination file, a county table, or a
+national estimate. The published summary does not enumerate the uncovered
+population or establish service readiness, unmet need, adequacy, candidates,
+costs, or savings.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -334,7 +352,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records

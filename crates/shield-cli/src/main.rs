@@ -54,6 +54,10 @@ enum Commands {
     NemsisEmsDestinationBaseline,
     /// Emit the non-authoritative national EMS destination HLT pack.
     NemsisEmsDestinationHeldPack,
+    /// Reproduce Minnesota's published stroke-system drive-time coverage.
+    MinnesotaStrokeDriveTimeBaseline,
+    /// Emit the non-authoritative Minnesota stroke-access HLT pack.
+    MinnesotaStrokeDriveTimeHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -148,6 +152,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             shield_cms_access::nemsis_ems_destination_held_pack_json()?
         ),
+        Commands::MinnesotaStrokeDriveTimeBaseline => println!(
+            "{}",
+            shield_cms_access::minnesota_stroke_drive_time_baseline_json()?
+        ),
+        Commands::MinnesotaStrokeDriveTimeHeldPack => println!(
+            "{}",
+            shield_cms_access::minnesota_stroke_drive_time_held_pack_json()?
+        ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -237,5 +249,7 @@ mod tests {
         );
         assert!(Cli::try_parse_from(["shield", "nemsis-ems-destination-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "nemsis-ems-destination-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "minnesota-stroke-drive-time-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "minnesota-stroke-drive-time-held-pack"]).is_ok());
     }
 }

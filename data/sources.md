@@ -243,3 +243,21 @@ remote counties did not contribute data. State/county/ZIP geographic
 identifiers are restricted on the public surface. Destination type therefore
 does not establish linked county flow, distance, travel time, local access,
 unmet need, or adequacy.
+
+## MN-MDH-STROKE-DRIVE-TIME-2026-07
+
+- Publisher: Minnesota Department of Health
+- Dataset: Minnesota Stroke System Coverage: Drive Time to Designated Stroke System Hospitals
+- Landing page: <https://www.health.state.mn.us/diseases/cardiovascular/stroke/system.html>
+- Map: <https://www.health.state.mn.us/diseases/cardiovascular/documents/drvtimemap.pdf>
+- Page updated / map vintage / captured: 2026-07-21 / 2026-07 / 2026-07-31
+- PDF pages / bytes / SHA-256: 1 / 333,247 / `490fc7ffc2c5af244ceafb35459b9b1c59907a6b66991a972d309d9ea1c130c4`
+- Derived fixture: `data/derived/minnesota-stroke-drive-time-2026-07.json`
+
+The official page reports 123 designated stroke hospitals. The July 2026 map
+reports that 97% of Minnesotans live within a 30-minute drive and 99% within a
+60-minute drive of a designated stroke-system hospital. These are published
+statewide modeled population-coverage shares. They are not observed EMS trips,
+patient origin-destination records, county estimates, a machine-readable
+geographic surface, or national access estimates. The source does not publish
+an exact uncovered population count in this summary.
