@@ -38,6 +38,10 @@ enum Commands {
     CmsCertifiedServicesWorkforceBaseline,
     /// Emit the non-authoritative CMS services/workforce HLT pack.
     CmsCertifiedServicesWorkforceHeldPack,
+    /// Reproduce CMS emergency-care process measures and coverage.
+    CmsEmergencyCareTimelinessBaseline,
+    /// Emit the non-authoritative CMS emergency-care HLT pack.
+    CmsEmergencyCareTimelinessHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -99,6 +103,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::CmsCertifiedServicesWorkforceHeldPack => println!(
             "{}",
             shield_cms_access::cms_certified_services_workforce_held_pack_json()?
+        ),
+        Commands::CmsEmergencyCareTimelinessBaseline => println!(
+            "{}",
+            shield_cms_access::cms_emergency_care_timeliness_baseline_json()?
+        ),
+        Commands::CmsEmergencyCareTimelinessHeldPack => println!(
+            "{}",
+            shield_cms_access::cms_emergency_care_timeliness_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -177,5 +189,7 @@ mod tests {
         assert!(
             Cli::try_parse_from(["shield", "cms-certified-services-workforce-held-pack"]).is_ok()
         );
+        assert!(Cli::try_parse_from(["shield", "cms-emergency-care-timeliness-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-emergency-care-timeliness-held-pack"]).is_ok());
     }
 }

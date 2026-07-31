@@ -216,6 +216,32 @@ arrangement`, both, or not provided); it does not prove that a service is open
 now or has enough staff. The result is therefore a service/workforce evidence
 spine for a future access test, not a capacity, adequacy, or savings claim.
 
+### Emergency-care timeliness observations
+
+The May 13, 2026 CMS Timely and Effective Care release adds historical
+emergency-process observations by exact facility ID:
+
+| Emergency-care result | Facilities or value |
+|---|---:|
+| Current hospitals with a standard reporting row | 4,660 of 5,432 (85.79%) |
+| Overall ED-time values / unavailable | 4,050 / 610 |
+| Facility median / CMS national value | 154 / 167 minutes |
+| Transfer-time values / unavailable | 2,340 / 2,320 |
+| Left-without-being-seen values / unavailable | 3,832 / 828 |
+| Separate Rural Emergency Hospital reporters | 41 |
+
+The 772 current hospitals outside the standard reporting surface are 635
+psychiatric, 132 Veterans Administration, and five long-term hospitals. All 41
+Rural Emergency Hospitals have a distinct CMS reporting file; SHIELD does not
+mistake their suppressed standard rows for missing facilities.
+
+CMS values cover stated 2024 or July 2024–June 2025 periods. Facility medians
+are not live waits, cannot be averaged into a patient-weighted national result,
+and do not reveal why a facility differs from the national value. That value is
+a descriptive reference—not an access or adequacy floor. Current schedules,
+staffing, travel/catchments, need, causal effects, costs, and savings remain
+held.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -241,7 +267,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, CMS certified-service/workforce, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -265,6 +291,8 @@ cargo run -p shield-cli -- cms-operational-capacity-baseline
 cargo run -p shield-cli -- cms-operational-capacity-held-pack
 cargo run -p shield-cli -- cms-certified-services-workforce-baseline
 cargo run -p shield-cli -- cms-certified-services-workforce-held-pack
+cargo run -p shield-cli -- cms-emergency-care-timeliness-baseline
+cargo run -p shield-cli -- cms-emergency-care-timeliness-held-pack
 cargo test --workspace
 ```
 

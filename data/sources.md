@@ -144,3 +144,27 @@ both. Those codes do not establish present schedules, hours, throughput, or
 adequacy. Seven workforce fields are retained as provider-recorded employed
 FTE values. They are not unique people or current shift coverage, and source
 zeros and conspicuous maxima remain visible pending compatible validation.
+
+## CMS-TEC-2026-05
+
+- Publisher: Centers for Medicare & Medicaid Services (CMS)
+- Dataset: Timely and Effective Care - Hospital (`yv7e-xc69`)
+- Landing page: <https://data.cms.gov/provider-data/dataset/yv7e-xc69>
+- Released / modified / captured: 2026-05-13 / 2026-04-28 / 2026-07-31
+- Provider CSV rows / bytes / SHA-256: 138,173 / 34,178,467 / `5d39e1fd8b7b272fe83f7b53e2f69288c997dfb4d28b68dd74454e80e7d860e9`
+- National CSV rows / bytes / SHA-256: 45 / 13,805 / `e71b0a16dc71eb9826b1d7cc4eab5c3bddbc1a285681f28e2ae33a9c2b8628e9`
+- Rural Emergency Hospital provider CSV rows / bytes / SHA-256: 164 / 59,753 / `c83bdee86d813a9a23b642cc3ed159825cef355e9f025c274f50f64cd12568e0`
+- Rural Emergency Hospital national CSV rows / bytes / SHA-256: 8 / 2,822 / `ed2328cd063920a0cd45c5ee36d13f91983657a161affaf73c0d76115203d1af`
+- Data dictionary bytes / SHA-256: 1,291,356 / `cd5016abee26e914b273a8fea8ab698710ff60f1c53a1b66e43bbd7168f6cb81`
+- Derived fixture: `data/derived/cms-emergency-care-timeliness-2026-05.json`
+
+The standard provider file contains seven emergency rows for each of 4,660
+facilities and matches all of them to the current HGI footprint by exact CCN.
+The 772 current IDs without a standard row remain classified by hospital type.
+All 41 Rural Emergency Hospitals appear in a separate CMS reporting surface;
+their standard rows carry footnote 19 and are not treated as usable measures.
+
+Scores cover calendar 2024 or July 2024 through June 2025. SHIELD preserves
+`Not Available` values and uses CMS national values only as descriptive
+references. Facility medians are not live waits, patient-weighted system
+estimates, access floors, need measures, causal effects, or adequacy findings.

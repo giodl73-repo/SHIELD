@@ -35,18 +35,22 @@ where infrastructure methods do not transfer cleanly.
   5,422 of 5,432 current hospitals, complete certified-service modes for 5,286,
   an explicit 136-hospital federal residual, and seven recorded employed-FTE
   fields that preserve zeros and conspicuous maxima.
+- A CMS emergency-process spine with 4,660 exact current-hospital matches,
+  six numeric process measures plus ED volume, explicit unavailable values,
+  descriptive national comparisons, and a separate 41-facility Rural
+  Emergency Hospital reporting surface.
 
 ## Next public work
 
-The facility, rurality, formal shortage-registry, available-bed-use, and
-certified-service/workforce baselines are complete.
+The facility, rurality, formal shortage-registry, available-bed-use,
+certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add current schedules, operating hours, throughput, wait/access, vacancies,
-   or other delivery evidence only with compatible CCN or explicit site
-   identity; certification and employed FTE do not prove present availability.
-2. Evaluate a bounded service line against a compatible geographic denominator,
-   baseline/surge basis, patient-relevant access measure, and stated need.
+1. Add current emergency schedules, staffing/vacancy, or real-time operations
+   evidence only with compatible CCN or explicit site identity; historical
+   process measures do not prove present availability.
+2. Add patient-relevant travel/catchment and need denominators compatible with
+   the emergency-service identity and declared baseline/surge basis.
 3. Keep county class, formal shortage designation, facility presence, available
    bed use, staffed
    service availability, and patient-relevant travel access distinct.

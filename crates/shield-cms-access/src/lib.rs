@@ -17,6 +17,8 @@ const CMS_OPERATIONAL_CAPACITY_FIXTURE: &str =
     include_str!("../../../data/derived/cms-hospital-operational-capacity-2023.json");
 const CMS_CERTIFIED_SERVICES_WORKFORCE_FIXTURE: &str =
     include_str!("../../../data/derived/cms-certified-services-workforce-2026-q2.json");
+const CMS_EMERGENCY_CARE_TIMELINESS_FIXTURE: &str =
+    include_str!("../../../data/derived/cms-emergency-care-timeliness-2026-05.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1270,6 +1272,184 @@ pub fn cms_certified_services_workforce_held_pack_json() -> Result<String, Acces
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct EmergencyCareSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_id: String,
+    pub landing_page: String,
+    pub download_url: String,
+    pub released: String,
+    pub modified: String,
+    pub captured: String,
+    pub csv_rows: u64,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub national_dataset_id: String,
+    pub national_csv_rows: u64,
+    pub national_csv_bytes: u64,
+    pub national_csv_sha256: String,
+    pub reh_dataset_id: String,
+    pub reh_csv_rows: u64,
+    pub reh_csv_bytes: u64,
+    pub reh_csv_sha256: String,
+    pub reh_national_dataset_id: String,
+    pub reh_national_csv_rows: u64,
+    pub reh_national_csv_bytes: u64,
+    pub reh_national_csv_sha256: String,
+    pub dictionary_bytes: u64,
+    pub dictionary_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct EmergencyMeasureCoverage {
+    pub unit: String,
+    pub direction: String,
+    pub start_date: String,
+    pub end_date: String,
+    pub rows: u64,
+    pub numeric: u64,
+    pub not_available: u64,
+    pub national_value: u64,
+    pub facility_median: u64,
+    pub minimum: u64,
+    pub maximum: u64,
+    pub better_than_national: u64,
+    pub equal_to_national: u64,
+    pub worse_than_national: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsEmergencyCareTimeliness {
+    pub source: EmergencyCareSource,
+    pub current_hgi_facilities: u64,
+    pub standard_source_facilities: u64,
+    pub standard_exact_current_ccns: u64,
+    pub standard_current_coverage_bps: u64,
+    pub current_without_standard_rows: u64,
+    pub current_without_standard_type_counts: BTreeMap<String, u64>,
+    pub standard_emergency_rows: u64,
+    pub standard_measures_per_facility: u64,
+    pub standard_hgi_emergency_yes: u64,
+    pub standard_hgi_emergency_no: u64,
+    pub standard_pos_delivery_modes: BTreeMap<String, u64>,
+    pub ed_volume_categories: BTreeMap<String, u64>,
+    pub standard_measures: BTreeMap<String, EmergencyMeasureCoverage>,
+    pub reh_facilities: u64,
+    pub reh_standard_rows_suppressed_footnote_19: u64,
+    pub reh_separate_rows: u64,
+    pub reh_measures: BTreeMap<String, EmergencyMeasureCoverage>,
+    pub facility_medians_are_live_wait_times: bool,
+    pub national_values_are_adequacy_floors: bool,
+    pub better_than_national_establishes_adequacy: bool,
+    pub current_schedule_coverage_ready: bool,
+    pub geographic_access_ready: bool,
+    pub need_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl CmsEmergencyCareTimeliness {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let bps = (self.standard_exact_current_ccns * 10_000 + self.current_hgi_facilities / 2)
+            / self.current_hgi_facilities;
+        if self.standard_exact_current_ccns + self.current_without_standard_rows
+            != self.current_hgi_facilities
+            || self.standard_source_facilities != self.standard_exact_current_ccns
+            || self.standard_current_coverage_bps != bps
+            || self
+                .current_without_standard_type_counts
+                .values()
+                .sum::<u64>()
+                != self.current_without_standard_rows
+            || self.standard_emergency_rows
+                != self.standard_source_facilities * self.standard_measures_per_facility
+            || self.standard_hgi_emergency_yes + self.standard_hgi_emergency_no
+                != self.standard_source_facilities
+            || self.standard_pos_delivery_modes.values().sum::<u64>()
+                != self.standard_source_facilities
+            || self.ed_volume_categories.values().sum::<u64>() != self.standard_source_facilities
+            || self.reh_standard_rows_suppressed_footnote_19
+                != self.reh_facilities * self.standard_measures_per_facility
+            || self.reh_separate_rows != self.reh_facilities * self.reh_measures.len() as u64
+        {
+            return Err(AccessError::Invariant(
+                "emergency-care identity or source partitions do not reconcile".to_string(),
+            ));
+        }
+        for (name, measure) in self.standard_measures.iter().chain(&self.reh_measures) {
+            if measure.numeric + measure.not_available != measure.rows
+                || measure.better_than_national
+                    + measure.equal_to_national
+                    + measure.worse_than_national
+                    != measure.numeric
+                || measure.minimum > measure.facility_median
+                || measure.facility_median > measure.maximum
+            {
+                return Err(AccessError::Invariant(format!(
+                    "emergency measure partition does not reconcile: {name}"
+                )));
+            }
+        }
+        if self.facility_medians_are_live_wait_times
+            || self.national_values_are_adequacy_floors
+            || self.better_than_national_establishes_adequacy
+            || self.current_schedule_coverage_ready
+            || self.geographic_access_ready
+            || self.need_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "emergency-care interpretation boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_cms_emergency_care_timeliness_fixture(
+) -> Result<CmsEmergencyCareTimeliness, AccessError> {
+    let result: CmsEmergencyCareTimeliness =
+        serde_json::from_str(CMS_EMERGENCY_CARE_TIMELINESS_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn cms_emergency_care_timeliness_baseline_json() -> Result<String, AccessError> {
+    let result = load_cms_emergency_care_timeliness_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.cms-emergency-care-timeliness.v1",
+        "source":result.source,
+        "identity":{"current_hgi_facilities":result.current_hgi_facilities,"standard_source_facilities":result.standard_source_facilities,"standard_exact_current_ccns":result.standard_exact_current_ccns,"standard_current_coverage_bps":result.standard_current_coverage_bps,"current_without_standard_rows":result.current_without_standard_rows,"current_without_standard_type_counts":result.current_without_standard_type_counts},
+        "service_crosswalk":{"hgi_emergency_yes":result.standard_hgi_emergency_yes,"hgi_emergency_no":result.standard_hgi_emergency_no,"pos_delivery_modes":result.standard_pos_delivery_modes,"ed_volume_categories":result.ed_volume_categories},
+        "standard_measures":result.standard_measures,
+        "rural_emergency_hospitals":{"facilities":result.reh_facilities,"standard_rows_suppressed_footnote_19":result.reh_standard_rows_suppressed_footnote_19,"separate_rows":result.reh_separate_rows,"measures":result.reh_measures},
+        "interpretation":{"allowed":"historical facility-level emergency process observations, availability residuals, exact CCN identity, and descriptive comparison to CMS national values","boundary":"Facility medians cover stated 2024-2025 periods and are not live waits. National values are descriptive references, not adequacy floors; facility medians are not patient-weighted system estimates.","held":"current schedules, staffing, geographic access, catchment need, causal effects, adequacy, candidates, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn cms_emergency_care_timeliness_held_pack_json() -> Result<String, AccessError> {
+    let result = load_cms_emergency_care_timeliness_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:cms-emergency-care-timeliness-2026-05:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"current CMS hospital footprint with exact facility-ID emergency process joins","population_or_network":"CMS-reporting hospitals and separate Rural Emergency Hospital reporting surface","ownership":"mixed hospital ownership","time_basis":"2024 annual and 2024-07-01 through 2025-06-30 measure periods released 2026-05-13","unit_basis":"facility CCNs, categorical ED volume, minutes, and percentages","included":"exact identity, measure availability, facility medians and ranges, descriptive national comparisons, and REH separation","excluded":"live waits, schedules, staffing, catchments, travel, affordability, causal effects, adequacy, candidates, costs, and savings"},
+        "source_custody":{"source_id":result.source.dataset_id,"publisher":result.source.publisher,"source_path_or_url":result.source.download_url,"vintage":"May 13, 2026 release","capture_status":"derived aggregate with exact identity, measure, comparison, and residual invariants","checksum_or_null":result.source.csv_sha256,"dictionary_checksum":result.source.dictionary_sha256,"national_checksum":result.source.national_csv_sha256,"reh_checksum":result.source.reh_csv_sha256},
+        "problem":{"baseline_metric":"facility emergency-department process-measure coverage","baseline_value_or_null":result.standard_exact_current_ccns,"affected_population_or_exposure_or_null":null,"problem_boundary":"historical facility process medians and national comparisons do not establish current access or local inadequacy","current_hgi_facilities":result.current_hgi_facilities,"standard_exact_current_ccns":result.standard_exact_current_ccns,"standard_coverage_bps":result.standard_current_coverage_bps,"reh_facilities":result.reh_facilities},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no staffing, scheduling, facility, payment, funding, service-line, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"reporting eligibility, unavailable values, small samples, mixed periods, facility medians, unobserved catchments, current conditions, and causal drivers remain unresolved","transferability_boundary":"descriptive process observations do not establish an intervention effect, access, quality outcome, or adequacy"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"emergency process measures cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"emergency process observation only","peer_goal_basis":null,"evaluation_horizons":"quarterly and annual CMS refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"facility comparisons can conceal case mix, catchment, staffing, transfer-network, and distribution differences","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add facility medians or compare mixed measure populations as one system wait","observation_cadence":"CMS release refresh","reopen_triggers":"compatible current operations, geographic access, catchment need, outcome, cost, incidence, and delivery evidence for a bounded emergency-care candidate","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on CMS Timely and Effective Care release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR VET DEF","non_additivity_rule":"process observations are shared HLT context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"exact_ccn_identity_ready":true,"historical_process_measure_ready":true,"current_schedule_coverage_ready":result.current_schedule_coverage_ready,"geographic_access_ready":result.geographic_access_ready,"need_ready":result.need_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"live_wait_or_adequacy_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1613,6 +1793,61 @@ mod tests {
             output["service_floors"]["staffed_capacity"],
             serde_json::Value::Null
         );
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn cms_emergency_care_reconciles_exact_current_identity_and_residual() {
+        let result = load_cms_emergency_care_timeliness_fixture().unwrap();
+        assert_eq!(result.current_hgi_facilities, 5_432);
+        assert_eq!(result.standard_exact_current_ccns, 4_660);
+        assert_eq!(result.standard_current_coverage_bps, 8_579);
+        assert_eq!(result.current_without_standard_rows, 772);
+        assert_eq!(
+            result.current_without_standard_type_counts["Psychiatric"],
+            635
+        );
+    }
+
+    #[test]
+    fn cms_emergency_process_measures_preserve_unavailable_and_comparison_counts() {
+        let result = load_cms_emergency_care_timeliness_fixture().unwrap();
+        let overall = &result.standard_measures["OP_18a"];
+        assert_eq!(overall.numeric, 4_050);
+        assert_eq!(overall.not_available, 610);
+        assert_eq!(overall.national_value, 167);
+        assert_eq!(overall.facility_median, 154);
+        assert_eq!(overall.better_than_national, 2_375);
+        assert_eq!(overall.worse_than_national, 1_649);
+    }
+
+    #[test]
+    fn cms_emergency_care_keeps_rural_emergency_reporting_separate() {
+        let result = load_cms_emergency_care_timeliness_fixture().unwrap();
+        assert_eq!(result.reh_facilities, 41);
+        assert_eq!(result.reh_standard_rows_suppressed_footnote_19, 287);
+        let transfer = &result.reh_measures["REH_OP_18d"];
+        assert_eq!(transfer.numeric, 20);
+        assert_eq!(transfer.not_available, 21);
+        assert_eq!(transfer.national_value, 243);
+    }
+
+    #[test]
+    fn cms_emergency_care_pack_holds_live_access_adequacy_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&cms_emergency_care_timeliness_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(
+            output["readiness"]["historical_process_measure_ready"],
+            true
+        );
+        assert_eq!(
+            output["readiness"]["current_schedule_coverage_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["geographic_access_ready"], false);
+        assert_eq!(output["readiness"]["need_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
     }

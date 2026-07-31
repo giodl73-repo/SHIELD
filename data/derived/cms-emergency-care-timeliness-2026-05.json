@@ -1,0 +1,83 @@
+{
+  "source": {
+    "publisher": "Centers for Medicare & Medicaid Services",
+    "dataset_title": "Timely and Effective Care - Hospital",
+    "dataset_id": "yv7e-xc69",
+    "landing_page": "https://data.cms.gov/provider-data/dataset/yv7e-xc69",
+    "download_url": "https://data.cms.gov/provider-data/sites/default/files/resources/0437b5494ac61507ad90f2af6b8085a7_1777413965/Timely_and_Effective_Care-Hospital.csv",
+    "released": "2026-05-13",
+    "modified": "2026-04-28",
+    "captured": "2026-07-31",
+    "csv_rows": 138173,
+    "csv_bytes": 34178467,
+    "csv_sha256": "5d39e1fd8b7b272fe83f7b53e2f69288c997dfb4d28b68dd74454e80e7d860e9",
+    "national_dataset_id": "isrn-hqyy",
+    "national_csv_rows": 45,
+    "national_csv_bytes": 13805,
+    "national_csv_sha256": "e71b0a16dc71eb9826b1d7cc4eab5c3bddbc1a285681f28e2ae33a9c2b8628e9",
+    "reh_dataset_id": "97xg-v3wv",
+    "reh_csv_rows": 164,
+    "reh_csv_bytes": 59753,
+    "reh_csv_sha256": "c83bdee86d813a9a23b642cc3ed159825cef355e9f025c274f50f64cd12568e0",
+    "reh_national_dataset_id": "d2k3-k3ac",
+    "reh_national_csv_rows": 8,
+    "reh_national_csv_bytes": 2822,
+    "reh_national_csv_sha256": "ed2328cd063920a0cd45c5ee36d13f91983657a161affaf73c0d76115203d1af",
+    "dictionary_bytes": 1291356,
+    "dictionary_sha256": "cd5016abee26e914b273a8fea8ab698710ff60f1c53a1b66e43bbd7168f6cb81"
+  },
+  "current_hgi_facilities": 5432,
+  "standard_source_facilities": 4660,
+  "standard_exact_current_ccns": 4660,
+  "standard_current_coverage_bps": 8579,
+  "current_without_standard_rows": 772,
+  "current_without_standard_type_counts": {
+    "Psychiatric": 635,
+    "Acute Care - Veterans Administration": 132,
+    "Long-term": 5
+  },
+  "standard_emergency_rows": 32620,
+  "standard_measures_per_facility": 7,
+  "standard_hgi_emergency_yes": 4304,
+  "standard_hgi_emergency_no": 356,
+  "standard_pos_delivery_modes": {
+    "staff_only": 2471,
+    "arrangement_only": 152,
+    "staff_and_arrangement": 1645,
+    "not_provided": 359,
+    "service_field_missing": 24,
+    "pos_identity_missing": 9
+  },
+  "ed_volume_categories": {
+    "very_high": 704,
+    "high": 552,
+    "medium": 915,
+    "low": 1666,
+    "not_available": 823
+  },
+  "standard_measures": {
+    "OP_18a": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":4660,"numeric":4050,"not_available":610,"national_value":167,"facility_median":154,"minimum":42,"maximum":505,"better_than_national":2375,"equal_to_national":26,"worse_than_national":1649},
+    "OP_18b": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":4660,"numeric":4077,"not_available":583,"national_value":161,"facility_median":148,"minimum":42,"maximum":464,"better_than_national":2375,"equal_to_national":28,"worse_than_national":1674},
+    "OP_18c": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":4660,"numeric":3036,"not_available":1624,"national_value":259,"facility_median":248,"minimum":38,"maximum":6865,"better_than_national":1640,"equal_to_national":10,"worse_than_national":1386},
+    "OP_18d": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":4660,"numeric":2340,"not_available":2320,"national_value":287,"facility_median":294,"minimum":55,"maximum":1597,"better_than_national":1116,"equal_to_national":3,"worse_than_national":1221},
+    "OP_22": {"unit":"percent","direction":"lower","start_date":"2024-01-01","end_date":"2024-12-31","rows":4660,"numeric":3832,"not_available":828,"national_value":2,"facility_median":1,"minimum":0,"maximum":23,"better_than_national":2219,"equal_to_national":769,"worse_than_national":844},
+    "OP_23": {"unit":"percent","direction":"higher","start_date":"2024-07-01","end_date":"2025-06-30","rows":4660,"numeric":1476,"not_available":3184,"national_value":69,"facility_median":74,"minimum":0,"maximum":100,"better_than_national":876,"equal_to_national":31,"worse_than_national":569}
+  },
+  "reh_facilities": 41,
+  "reh_standard_rows_suppressed_footnote_19": 287,
+  "reh_separate_rows": 164,
+  "reh_measures": {
+    "REH_OP_18a": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":41,"numeric":35,"not_available":6,"national_value":102,"facility_median":109,"minimum":56,"maximum":154,"better_than_national":13,"equal_to_national":2,"worse_than_national":20},
+    "REH_OP_18b": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":41,"numeric":35,"not_available":6,"national_value":94,"facility_median":98,"minimum":56,"maximum":142,"better_than_national":13,"equal_to_national":2,"worse_than_national":20},
+    "REH_OP_18c": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":41,"numeric":13,"not_available":28,"national_value":195,"facility_median":206,"minimum":91,"maximum":356,"better_than_national":6,"equal_to_national":0,"worse_than_national":7},
+    "REH_OP_18d": {"unit":"minutes","direction":"lower","start_date":"2024-07-01","end_date":"2025-06-30","rows":41,"numeric":20,"not_available":21,"national_value":243,"facility_median":229,"minimum":184,"maximum":362,"better_than_national":11,"equal_to_national":0,"worse_than_national":9}
+  },
+  "facility_medians_are_live_wait_times": false,
+  "national_values_are_adequacy_floors": false,
+  "better_than_national_establishes_adequacy": false,
+  "current_schedule_coverage_ready": false,
+  "geographic_access_ready": false,
+  "need_ready": false,
+  "candidate_ready": false,
+  "taxlane_admission_ready": false
+}
