@@ -35,6 +35,8 @@ const NYC_EMS_LOCAL_LAW_119_CATEGORY9_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-local-law-119-category9-2025.json");
 const NYC_EMS_LOCAL_LAW_119_REPORTING_SCOPE_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-local-law-119-reporting-scope-2026.json");
+const NYC_EMS_CATEGORY9_OPERATIONS_CONTEXT_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-category9-operations-context-2025.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -2712,6 +2714,166 @@ pub fn nyc_ems_local_law_119_reporting_scope_held_pack_json() -> Result<String, 
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsOperationsQueryCustody {
+    pub publisher: String,
+    #[serde(default)]
+    pub resource_key: Option<String>,
+    #[serde(default)]
+    pub model_id: Option<u64>,
+    #[serde(default)]
+    pub dataset_id: Option<String>,
+    pub grain: String,
+    pub rows: u64,
+    #[serde(default)]
+    pub payload_bytes: Option<u64>,
+    #[serde(default)]
+    pub payload_sha256: Option<String>,
+    pub response_bytes: u64,
+    pub response_sha256: String,
+    #[serde(default)]
+    pub metadata_bytes: Option<u64>,
+    #[serde(default)]
+    pub metadata_sha256: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsOperationsBridge {
+    pub named_boroughs: u64,
+    pub months: u64,
+    pub joined_rows: u64,
+    pub category9_named_borough_incidents: u64,
+    pub category9_unspecified_incidents: u64,
+    pub dispatch_named_borough_incidents: u64,
+    pub dispatch_unspecified_incidents: u64,
+    pub category9_and_dispatch_qualifying_definitions_match: bool,
+    pub shared_incident_key_present: bool,
+    pub patient_outcome_field_present: bool,
+    pub hospital_arrival_is_patient_outcome: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct PearsonMoments {
+    pub metric: String,
+    pub n: u64,
+    pub sum_x: f64,
+    pub sum_y: f64,
+    pub sum_x2: f64,
+    pub sum_y2: f64,
+    pub sum_xy: f64,
+    pub pearson_r: f64,
+}
+
+impl PearsonMoments {
+    fn recompute(&self) -> f64 {
+        let n = self.n as f64;
+        (n * self.sum_xy - self.sum_x * self.sum_y)
+            / ((n * self.sum_x2 - self.sum_x * self.sum_x)
+                * (n * self.sum_y2 - self.sum_y * self.sum_y))
+                .sqrt()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsOperationsBoundaries {
+    pub ecological_operations_context_ready: bool,
+    pub definition_compatible_outcome_join_ready: bool,
+    pub incident_level_join_ready: bool,
+    pub operational_driver_identified: bool,
+    pub causal_explanation_ready: bool,
+    pub adequacy_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsCategory9OperationsContext {
+    pub category9_query: NycEmsOperationsQueryCustody,
+    pub dispatch_query: NycEmsOperationsQueryCustody,
+    pub bridge: NycEmsOperationsBridge,
+    pub pearson_moments: Vec<PearsonMoments>,
+    pub claim_boundaries: NycEmsOperationsBoundaries,
+}
+
+impl NycEmsCategory9OperationsContext {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let bridge = &self.bridge;
+        let boundary = &self.claim_boundaries;
+        if self.category9_query.rows != 72
+            || self.dispatch_query.rows != 66
+            || bridge.joined_rows != bridge.named_boroughs * bridge.months
+            || bridge.category9_named_borough_incidents + bridge.category9_unspecified_incidents
+                != 216_599
+            || bridge.dispatch_named_borough_incidents + bridge.dispatch_unspecified_incidents
+                != 1_612_273
+            || self.pearson_moments.len() != 7
+            || self.pearson_moments.iter().any(|moments| {
+                moments.n != bridge.joined_rows
+                    || (moments.recompute() - moments.pearson_r).abs() > 1e-12
+            })
+            || bridge.category9_and_dispatch_qualifying_definitions_match
+            || bridge.shared_incident_key_present
+            || bridge.patient_outcome_field_present
+            || bridge.hospital_arrival_is_patient_outcome
+            || !boundary.ecological_operations_context_ready
+            || boundary.definition_compatible_outcome_join_ready
+            || boundary.incident_level_join_ready
+            || boundary.operational_driver_identified
+            || boundary.causal_explanation_ready
+            || boundary.adequacy_ready
+            || boundary.candidate_ready
+            || boundary.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS Category 9 operations-context boundary failed".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_category9_operations_context_fixture(
+) -> Result<NycEmsCategory9OperationsContext, AccessError> {
+    let result: NycEmsCategory9OperationsContext =
+        serde_json::from_str(NYC_EMS_CATEGORY9_OPERATIONS_CONTEXT_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_category9_operations_context_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_operations_context_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-category9-operations-context.v1",
+        "category9_query":result.category9_query,
+        "dispatch_query":result.dispatch_query,
+        "bridge":result.bridge,
+        "pearson_moments":result.pearson_moments,
+        "claim_boundaries":result.claim_boundaries,
+        "interpretation":{"allowed":"descriptive Pearson associations across 60 named-borough months for hypothesis prioritization","boundary":"Category 9 and dispatch extracts share borough-month but not qualifying-event definition or incident identity","held":"patient outcomes, incident-level linkage, operational driver, causality, adequacy, candidate effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_category9_operations_context_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_operations_context_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-category9-operations-context-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"five named NYC boroughs","population_or_network":"Category 9 qualifying incidents and separately defined FDNY dispatch incidents","ownership":"City of New York / FDNY","time_basis":"60 borough-month observations in calendar 2025","unit_basis":"official Category 9 shares and aggregate dispatch process metrics","included":"ecological borough-month operations context and reproducible Pearson moments","excluded":"unspecified geography from the join, patient outcomes, shared incidents, definition-compatible driver estimation, causal effect, adequacy, candidate, and costs"},
+        "source_custody":{"source_id":"NYC-EMS-CATEGORY9-OPERATIONS-CONTEXT-2025","publisher":"City of New York and FDNY","source_path_or_url":"https://www.nyc.gov/site/911reporting/reports/local-law-119-compliance.page","vintage":"calendar 2025","capture_status":"exact 72-row Category 9 and 66-row dispatch aggregate query custody","checksum_or_null":result.category9_query.response_sha256},
+        "problem":{"baseline_metric":"borough-month Category 9 ecological operations screen","baseline_value_or_null":result.bridge.joined_rows,"affected_population_or_exposure_or_null":result.bridge.category9_named_borough_incidents,"problem_boundary":"associations prioritize questions but cannot identify a driver because event definitions and incident identities do not match","pearson_moments":result.pearson_moments},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no staffing, fleet, posting, dispatch, routing, hospital, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"borough and month confounding, unmatched qualifying sets, call mix, severity, weather, traffic, staffing, fleet, posting, hospital conditions, and patient outcomes remain unresolved","transferability_boundary":"ecological NYC associations establish neither individual outcomes nor another jurisdiction"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"ecological operations context only","netting_rule":"descriptive correlations cannot enter fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"ecological operations hypothesis screen","peer_goal_basis":null,"evaluation_horizons":"monthly refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"strong correlations may reflect shared timing definitions, geography, demand mix, or other confounding","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add Category 9 and dispatch incidents","observation_cadence":"annual bounded refresh","reopen_triggers":"ALS-unit-level operational data, patient outcomes, compatible denominator, candidate design, effects, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on source update"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"TRN","non_additivity_rule":"the two incident totals are different populations and cannot be added"},
+        "readiness":{"domain_evidence_ready":true,"ecological_operations_context_ready":true,"definition_compatible_outcome_join_ready":false,"incident_level_join_ready":false,"operational_driver_ready":false,"causal_effect_ready":false,"adequacy_ready":false,"candidate_bounded":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"ecological_association_claim_allowed":true,"patient_outcome_claim_allowed":false,"operational_driver_claim_allowed":false,"causal_claim_allowed":false,"adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3485,6 +3647,54 @@ mod tests {
         assert_eq!(output["readiness"]["performance_pass_fail_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["claim_boundaries"]["correction_required"], true);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_category9_operations_bridge_reconciles_named_and_unspecified_counts() {
+        let result = load_nyc_ems_category9_operations_context_fixture().unwrap();
+        assert_eq!(result.bridge.joined_rows, 60);
+        assert_eq!(result.bridge.category9_named_borough_incidents, 216_463);
+        assert_eq!(result.bridge.category9_unspecified_incidents, 136);
+        assert_eq!(result.bridge.dispatch_named_borough_incidents, 1_612_266);
+        assert_eq!(result.bridge.dispatch_unspecified_incidents, 7);
+    }
+
+    #[test]
+    fn nyc_ems_category9_operations_moments_recompute_without_causal_claim() {
+        let result = load_nyc_ems_category9_operations_context_fixture().unwrap();
+        let travel = result
+            .pearson_moments
+            .iter()
+            .find(|row| row.metric == "average_travel_seconds")
+            .unwrap();
+        assert!((travel.recompute() + 0.841_719_950_205_960_5).abs() < 1e-12);
+        assert!(
+            !result
+                .bridge
+                .category9_and_dispatch_qualifying_definitions_match
+        );
+        assert!(!result.bridge.shared_incident_key_present);
+        assert!(!result.claim_boundaries.operational_driver_identified);
+        assert!(!result.claim_boundaries.causal_explanation_ready);
+    }
+
+    #[test]
+    fn nyc_ems_category9_operations_pack_holds_outcomes_and_fiscal_authority() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nyc_ems_category9_operations_context_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(
+            output["readiness"]["ecological_operations_context_ready"],
+            true
+        );
+        assert_eq!(
+            output["readiness"]["definition_compatible_outcome_join_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["operational_driver_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["causal_claim_allowed"], false);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }
 }

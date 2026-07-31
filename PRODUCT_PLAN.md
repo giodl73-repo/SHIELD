@@ -67,6 +67,10 @@ where infrastructure methods do not transfer cleanly.
   across 216,599 qualifying incidents, with reconciled borough counts and exact
   public-model custody. This supports a definition-compatible observation, not
   whole-law compliance, a legal performance pass/fail, or fiscal authority.
+- A 60-row named-borough/month ecological bridge between official Category 9
+  shares and separately defined dispatch process measures. Reproducible Pearson
+  moments prioritize ALS-unit operations questions without identifying a
+  driver, patient outcome, causal effect, candidate, or savings.
 
 ## Next work
 
@@ -74,8 +78,9 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Verify Council/Mayor submission and discrete yearly-report publication, then
-   acquire compatible outcome and operational-driver evidence for Category 9.
+1. Acquire ALS-unit-level operational and patient-outcome evidence with a shared
+   qualifying-event definition; separately verify Council/Mayor submission and
+   discrete yearly-report publication.
 2. Add compatible population denominators and outcome evidence before testing
    an NYC access or delivery intervention.
 3. Add machine-readable substate emergency access coverage or publicly usable

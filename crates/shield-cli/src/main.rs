@@ -78,6 +78,10 @@ enum Commands {
     /// Emit the non-authoritative reporting-scope correction HLT pack.
     #[command(name = "nyc-ems-local-law-119-reporting-scope-held-pack")]
     NycEmsLocalLaw119ReportingScopeHeldPack,
+    /// Reproduce the bounded Category 9 borough-month operations context.
+    NycEmsCategory9OperationsContextBaseline,
+    /// Emit the non-authoritative Category 9 operations-context HLT pack.
+    NycEmsCategory9OperationsContextHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -211,6 +215,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::NycEmsLocalLaw119ReportingScopeHeldPack => println!(
             "{}",
             shield_cms_access::nyc_ems_local_law_119_reporting_scope_held_pack_json()?
+        ),
+        Commands::NycEmsCategory9OperationsContextBaseline => println!(
+            "{}",
+            shield_cms_access::nyc_ems_category9_operations_context_baseline_json()?
+        ),
+        Commands::NycEmsCategory9OperationsContextHeldPack => println!(
+            "{}",
+            shield_cms_access::nyc_ems_category9_operations_context_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;

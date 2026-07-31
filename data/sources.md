@@ -346,3 +346,20 @@ The public model contains 147 monthly labels from April 2014 through June 2026,
 and the official page exposes citywide and borough views. Formal submission to
 the Council and Mayor and a discrete yearly report were not verified, so full
 statutory compliance remains unassessed.
+
+## NYC-EMS-CATEGORY9-OPERATIONS-CONTEXT-2025
+
+- Category 9 Power BI borough-month query rows / payload SHA-256 / response SHA-256: 72 / `83937ef408b57f8afd7f8a3cfdc0d5ae661b79951c85bc1097a067e0c5357ff3` / `4fbfea856a754207fdbe74c69cead3f3de9e57bc360e12d0dfaf06d94316036e`
+- FDNY dispatch borough-month query rows / bytes / SHA-256: 66 / 19,992 / `144e10a419177ddd8a4eb8c23ddcbd4fe5f1ffe395175249773b27b251be63b3`
+- FDNY metadata bytes / SHA-256: 50,138 / `85b190184d331ef66c31592bccf8b1d1ae811f061338c3b6a2ce8844e1a5aefe`
+- Derived fixture: `data/derived/nyc-ems-category9-operations-context-2025.json`
+
+Five named boroughs join across all 12 months, producing 60 ecological rows.
+The screen covers 216,463 named-borough Category 9 qualifying incidents and
+1,612,266 separately defined dispatch incidents. Reproducible Pearson moments
+show descriptive co-movement, strongest for average dispatch travel seconds
+(`r=-0.842`), average response seconds (`r=-0.759`), held share (`r=-0.740`),
+and average dispatch seconds (`r=-0.702`). The qualifying sets and incident
+identities do not match, borough/month confounding is uncontrolled, and neither
+source contains a compatible patient-outcome join. These are hypothesis signals,
+not operational drivers, causal effects, service adequacy, or candidates.

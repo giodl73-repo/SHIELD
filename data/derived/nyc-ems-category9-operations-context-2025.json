@@ -1,0 +1,55 @@
+{
+  "category9_query": {
+    "publisher": "City of New York",
+    "resource_key": "e59d7043-7f5c-4a62-bdec-295ddb7cc7b3",
+    "model_id": 533915,
+    "grain": "calendar-2025 month by borough",
+    "rows": 72,
+    "payload_bytes": 2555,
+    "payload_sha256": "83937ef408b57f8afd7f8a3cfdc0d5ae661b79951c85bc1097a067e0c5357ff3",
+    "response_bytes": 6384,
+    "response_sha256": "4fbfea856a754207fdbe74c69cead3f3de9e57bc360e12d0dfaf06d94316036e"
+  },
+  "dispatch_query": {
+    "publisher": "Fire Department of New York City",
+    "dataset_id": "76xm-jjuj",
+    "grain": "calendar-2025 month by borough",
+    "rows": 66,
+    "response_bytes": 19992,
+    "response_sha256": "144e10a419177ddd8a4eb8c23ddcbd4fe5f1ffe395175249773b27b251be63b3",
+    "metadata_bytes": 50138,
+    "metadata_sha256": "85b190184d331ef66c31592bccf8b1d1ae811f061338c3b6a2ce8844e1a5aefe"
+  },
+  "bridge": {
+    "named_boroughs": 5,
+    "months": 12,
+    "joined_rows": 60,
+    "category9_named_borough_incidents": 216463,
+    "category9_unspecified_incidents": 136,
+    "dispatch_named_borough_incidents": 1612266,
+    "dispatch_unspecified_incidents": 7,
+    "category9_and_dispatch_qualifying_definitions_match": false,
+    "shared_incident_key_present": false,
+    "patient_outcome_field_present": false,
+    "hospital_arrival_is_patient_outcome": false
+  },
+  "pearson_moments": [
+    {"metric":"dispatch_incidents","n":60,"sum_x":23.59372015203247,"sum_y":1612266.0,"sum_x2":9.812942531365374,"sum_y2":50679019072.0,"sum_xy":611927.7289250697,"pearson_r":-0.3516087581868836},
+    {"metric":"held_share","n":60,"sum_x":23.59372015203247,"sum_y":11.526283950713266,"sum_x2":9.812942531365374,"sum_y2":2.8507132773475403,"sum_xy":4.100526048222916,"pearson_r":-0.7400702964293323},
+    {"metric":"average_response_seconds","n":60,"sum_x":23.59372015203247,"sum_y":55247.55155615432,"sum_x2":9.812942531365374,"sum_y2":55610462.9218393,"sum_xy":20516.655837577848,"pearson_r":-0.7586786638754872},
+    {"metric":"average_travel_seconds","n":60,"sum_x":23.59372015203247,"sum_y":38117.889798608,"sum_x2":9.812942531365374,"sum_y2":24511146.293397654,"sum_xy":14654.632894422914,"pearson_r":-0.8417199502059605},
+    {"metric":"average_dispatch_seconds","n":60,"sum_x":23.59372015203247,"sum_y":17904.908668408367,"sum_x2":9.812942531365374,"sum_y2":8548765.13336356,"sum_xy":6121.431314082707,"pearson_r":-0.7018267041994052},
+    {"metric":"hospital_arrival_share","n":60,"sum_x":23.59372015203247,"sum_y":36.45844670689195,"sum_x2":9.812942531365374,"sum_y2":22.23693520534914,"sum_xy":14.407824713230601,"pearson_r":0.3377719068077739},
+    {"metric":"valid_severity1_events","n":60,"sum_x":23.59372015203247,"sum_y":27540.0,"sum_x2":9.812942531365374,"sum_y2":14681646.0,"sum_xy":10539.822059046075,"pearson_r":-0.27719074135019667}
+  ],
+  "claim_boundaries": {
+    "ecological_operations_context_ready": true,
+    "definition_compatible_outcome_join_ready": false,
+    "incident_level_join_ready": false,
+    "operational_driver_identified": false,
+    "causal_explanation_ready": false,
+    "adequacy_ready": false,
+    "candidate_ready": false,
+    "taxlane_admission_ready": false
+  }
+}
