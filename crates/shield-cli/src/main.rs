@@ -42,6 +42,10 @@ enum Commands {
     CmsEmergencyCareTimelinessBaseline,
     /// Emit the non-authoritative CMS emergency-care HLT pack.
     CmsEmergencyCareTimelinessHeldPack,
+    /// Reproduce county Original Medicare emergency-use demand context.
+    CmsCountyEmergencyDemandBaseline,
+    /// Emit the non-authoritative county emergency-demand HLT pack.
+    CmsCountyEmergencyDemandHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -111,6 +115,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::CmsEmergencyCareTimelinessHeldPack => println!(
             "{}",
             shield_cms_access::cms_emergency_care_timeliness_held_pack_json()?
+        ),
+        Commands::CmsCountyEmergencyDemandBaseline => println!(
+            "{}",
+            shield_cms_access::cms_county_emergency_demand_baseline_json()?
+        ),
+        Commands::CmsCountyEmergencyDemandHeldPack => println!(
+            "{}",
+            shield_cms_access::cms_county_emergency_demand_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -191,5 +203,7 @@ mod tests {
         );
         assert!(Cli::try_parse_from(["shield", "cms-emergency-care-timeliness-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-emergency-care-timeliness-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-county-emergency-demand-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-county-emergency-demand-held-pack"]).is_ok());
     }
 }

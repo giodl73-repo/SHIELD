@@ -19,6 +19,8 @@ const CMS_CERTIFIED_SERVICES_WORKFORCE_FIXTURE: &str =
     include_str!("../../../data/derived/cms-certified-services-workforce-2026-q2.json");
 const CMS_EMERGENCY_CARE_TIMELINESS_FIXTURE: &str =
     include_str!("../../../data/derived/cms-emergency-care-timeliness-2026-05.json");
+const CMS_COUNTY_EMERGENCY_DEMAND_FIXTURE: &str =
+    include_str!("../../../data/derived/cms-county-emergency-demand-2024.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1450,6 +1452,199 @@ pub fn cms_emergency_care_timeliness_held_pack_json() -> Result<String, AccessEr
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CountyEmergencyDemandSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_id: String,
+    pub landing_page: String,
+    pub download_url: String,
+    pub modified: String,
+    pub captured: String,
+    pub source_rows: u64,
+    pub source_columns: u64,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub dictionary_bytes: u64,
+    pub dictionary_sha256: String,
+    pub methodology_bytes: u64,
+    pub methodology_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CountyEmergencyFacilityBridge {
+    pub current_hgi_facilities: u64,
+    pub exact_pos_ccns: u64,
+    pub hgi_without_pos_identity: u64,
+    pub valid_pos_county_fips: u64,
+    pub invalid_or_missing_pos_county_fips: u64,
+    pub facilities_in_demand_counties: u64,
+    pub facilities_outside_demand_counties: u64,
+    pub unique_facility_counties: u64,
+    pub facility_counties_in_demand_surface: u64,
+    pub facility_counties_outside_demand_surface: u64,
+    pub demand_counties_with_current_hospital: u64,
+    pub demand_counties_without_current_hospital: u64,
+    pub demand_counties_with_hgi_emergency_yes: u64,
+    pub demand_counties_without_hgi_emergency_yes: u64,
+    pub demand_counties_with_certified_dedicated_ed: u64,
+    pub demand_counties_without_certified_dedicated_ed: u64,
+    pub no_current_hospital_counties_with_numeric_ed_demand: u64,
+    pub no_current_hospital_county_beneficiaries: u64,
+    pub no_current_hospital_county_ed_visits: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsCountyEmergencyDemand {
+    pub source: CountyEmergencyDemandSource,
+    pub year: u64,
+    pub county_rows: u64,
+    pub unique_county_codes: u64,
+    pub national_original_medicare_beneficiaries: u64,
+    pub county_beneficiary_values: u64,
+    pub county_beneficiary_suppressed_or_missing: u64,
+    pub county_beneficiary_sum: u64,
+    pub county_beneficiary_to_national_residual: u64,
+    pub national_ed_visits: u64,
+    pub county_ed_visit_values: u64,
+    pub county_ed_visit_suppressed_or_missing: u64,
+    pub county_ed_visit_sum: u64,
+    pub county_ed_visit_to_national_residual: u64,
+    pub national_ed_visits_per_1000: f64,
+    pub county_rate_values: u64,
+    pub county_rate_suppressed_or_missing: u64,
+    pub county_rate_minimum: f64,
+    pub county_rate_first_quartile: f64,
+    pub county_rate_median: f64,
+    pub county_rate_third_quartile: f64,
+    pub county_rate_maximum: f64,
+    pub county_rate_below_national: u64,
+    pub county_rate_equal_national: u64,
+    pub county_rate_above_national: u64,
+    pub national_beneficiaries_with_ed_visit_percent: f64,
+    pub county_beneficiaries_with_ed_visit_values: u64,
+    pub county_beneficiaries_with_ed_visit_suppressed_or_missing: u64,
+    pub county_beneficiaries_with_ed_visit_median_percent: f64,
+    pub facility_bridge: CountyEmergencyFacilityBridge,
+    pub original_medicare_represents_total_population: bool,
+    pub ed_utilization_is_unmet_need: bool,
+    pub county_without_hospital_is_no_access: bool,
+    pub county_residence_identifies_treating_hospital: bool,
+    pub cross_county_travel_observed: bool,
+    pub geographic_access_ready: bool,
+    pub need_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl CmsCountyEmergencyDemand {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let bridge = &self.facility_bridge;
+        if self.county_rows != self.unique_county_codes
+            || self.county_beneficiary_values + self.county_beneficiary_suppressed_or_missing
+                != self.county_rows
+            || self.county_beneficiary_sum + self.county_beneficiary_to_national_residual
+                != self.national_original_medicare_beneficiaries
+            || self.county_ed_visit_values + self.county_ed_visit_suppressed_or_missing
+                != self.county_rows
+            || self.county_ed_visit_sum + self.county_ed_visit_to_national_residual
+                != self.national_ed_visits
+            || self.county_rate_values + self.county_rate_suppressed_or_missing != self.county_rows
+            || self.county_rate_below_national
+                + self.county_rate_equal_national
+                + self.county_rate_above_national
+                != self.county_rate_values
+            || self.county_beneficiaries_with_ed_visit_values
+                + self.county_beneficiaries_with_ed_visit_suppressed_or_missing
+                != self.county_rows
+        {
+            return Err(AccessError::Invariant(
+                "county emergency-demand measures do not reconcile".to_string(),
+            ));
+        }
+        if bridge.exact_pos_ccns + bridge.hgi_without_pos_identity != bridge.current_hgi_facilities
+            || bridge.valid_pos_county_fips + bridge.invalid_or_missing_pos_county_fips
+                != bridge.exact_pos_ccns
+            || bridge.facilities_in_demand_counties + bridge.facilities_outside_demand_counties
+                != bridge.valid_pos_county_fips
+            || bridge.facility_counties_in_demand_surface
+                + bridge.facility_counties_outside_demand_surface
+                != bridge.unique_facility_counties
+            || bridge.demand_counties_with_current_hospital
+                + bridge.demand_counties_without_current_hospital
+                != self.county_rows
+            || bridge.demand_counties_with_hgi_emergency_yes
+                + bridge.demand_counties_without_hgi_emergency_yes
+                != self.county_rows
+            || bridge.demand_counties_with_certified_dedicated_ed
+                + bridge.demand_counties_without_certified_dedicated_ed
+                != self.county_rows
+        {
+            return Err(AccessError::Invariant(
+                "county emergency-demand facility bridge does not reconcile".to_string(),
+            ));
+        }
+        if self.original_medicare_represents_total_population
+            || self.ed_utilization_is_unmet_need
+            || self.county_without_hospital_is_no_access
+            || self.county_residence_identifies_treating_hospital
+            || self.cross_county_travel_observed
+            || self.geographic_access_ready
+            || self.need_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "county emergency-demand interpretation boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_cms_county_emergency_demand_fixture() -> Result<CmsCountyEmergencyDemand, AccessError> {
+    let result: CmsCountyEmergencyDemand =
+        serde_json::from_str(CMS_COUNTY_EMERGENCY_DEMAND_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn cms_county_emergency_demand_baseline_json() -> Result<String, AccessError> {
+    let result = load_cms_county_emergency_demand_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.cms-county-emergency-demand.v1",
+        "source":result.source,
+        "identity":{"year":result.year,"county_rows":result.county_rows,"unique_county_codes":result.unique_county_codes},
+        "original_medicare":{"national_beneficiaries":result.national_original_medicare_beneficiaries,"county_values":result.county_beneficiary_values,"county_suppressed_or_missing":result.county_beneficiary_suppressed_or_missing,"county_sum":result.county_beneficiary_sum,"national_residual":result.county_beneficiary_to_national_residual},
+        "emergency_visits":{"national_visits":result.national_ed_visits,"county_values":result.county_ed_visit_values,"county_suppressed_or_missing":result.county_ed_visit_suppressed_or_missing,"county_sum":result.county_ed_visit_sum,"national_residual":result.county_ed_visit_to_national_residual},
+        "visits_per_1000":{"national":result.national_ed_visits_per_1000,"county_values":result.county_rate_values,"suppressed_or_missing":result.county_rate_suppressed_or_missing,"minimum":result.county_rate_minimum,"first_quartile":result.county_rate_first_quartile,"median":result.county_rate_median,"third_quartile":result.county_rate_third_quartile,"maximum":result.county_rate_maximum,"below_national":result.county_rate_below_national,"equal_national":result.county_rate_equal_national,"above_national":result.county_rate_above_national},
+        "facility_bridge":result.facility_bridge,
+        "interpretation":{"allowed":"2024 county-residence Original Medicare emergency-use rates, suppression residuals, and exact county-FIPS overlap with current hospital/service locations","boundary":"Utilization is not unmet need; county residence is not treating-facility location; no current hospital inside a county does not prove no access because cross-county care is unobserved.","held":"total-population demand, travel time, catchments, cross-county flows, local adequacy, causal effects, candidates, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn cms_county_emergency_demand_held_pack_json() -> Result<String, AccessError> {
+    let result = load_cms_county_emergency_demand_fixture()?;
+    let bridge = &result.facility_bridge;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:cms-county-emergency-demand-2024:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"2024 CMS county-residence rows joined to current facility county FIPS","population_or_network":"Original Medicare beneficiaries and current CMS hospital locations","ownership":"mixed hospital ownership","time_basis":"calendar 2024 utilization in dataset modified 2026-05-15","unit_basis":"county FIPS, Original Medicare beneficiaries, ED visits, and visits per 1,000 beneficiaries","included":"county demand observations, suppression residuals, national reconciliation, and facility-location overlap","excluded":"Medicare Advantage and non-Medicare demand, treating facility, travel, catchments, cross-county flows, live operations, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":result.source.dataset_id,"publisher":result.source.publisher,"source_path_or_url":result.source.download_url,"vintage":"2024","capture_status":"derived aggregate with county, national, suppression, and facility-FIPS invariants","checksum_or_null":result.source.csv_sha256,"dictionary_checksum":result.source.dictionary_sha256,"methodology_checksum":result.source.methodology_sha256},
+        "problem":{"baseline_metric":"Original Medicare county-residence emergency visits per 1,000 beneficiaries","baseline_value_or_null":result.national_ed_visits_per_1000,"affected_population_or_exposure_or_null":result.national_original_medicare_beneficiaries,"problem_boundary":"county utilization and facility co-location do not establish unmet need or access","county_rows":result.county_rows,"county_rate_values":result.county_rate_values,"county_rate_suppressed_or_missing":result.county_rate_suppressed_or_missing,"counties_without_current_hospital":bridge.demand_counties_without_current_hospital,"no_hospital_county_beneficiaries":bridge.no_current_hospital_county_beneficiaries,"no_hospital_county_ed_visits":bridge.no_current_hospital_county_ed_visits},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no hospital siting, staffing, payment, funding, service-line, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"Medicare-only scope, suppressed counties, health status, cross-county flows, facility choice, travel, capacity, and causal drivers remain unresolved","transferability_boundary":"resident utilization does not establish access failure, unmet need, or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"Original Medicare county-residence context only","netting_rule":"county emergency-use observations cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"county emergency-demand observation only","peer_goal_basis":null,"evaluation_horizons":"annual CMS refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"county co-location can misclassify cross-border access and higher utilization can reflect access, morbidity, substitution, or practice patterns","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add county rates or treat resident demand as facility throughput","observation_cadence":"annual CMS release","reopen_triggers":"travel-time or patient-flow evidence plus total-population demand, current operations, outcomes, costs, incidence, and delivery for a bounded candidate","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on CMS Geographic Variation release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR VET DEF","non_additivity_rule":"county utilization is shared HLT context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"county_demand_context_ready":true,"exact_county_fips_bridge_ready":true,"cross_county_travel_ready":result.cross_county_travel_observed,"geographic_access_ready":result.geographic_access_ready,"need_ready":result.need_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"county_without_hospital_as_no_access_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1846,6 +2041,55 @@ mod tests {
             output["readiness"]["current_schedule_coverage_ready"],
             false
         );
+        assert_eq!(output["readiness"]["geographic_access_ready"], false);
+        assert_eq!(output["readiness"]["need_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn cms_county_emergency_demand_reconciles_national_and_suppressed_residuals() {
+        let result = load_cms_county_emergency_demand_fixture().unwrap();
+        assert_eq!(result.county_rows, 3_197);
+        assert_eq!(result.county_rate_values, 3_143);
+        assert_eq!(result.county_rate_suppressed_or_missing, 54);
+        assert_eq!(result.national_original_medicare_beneficiaries, 27_732_177);
+        assert_eq!(result.national_ed_visits, 16_377_193);
+        assert_eq!(result.county_ed_visit_to_national_residual, 54_410);
+    }
+
+    #[test]
+    fn cms_county_emergency_rates_preserve_distribution_not_a_need_threshold() {
+        let result = load_cms_county_emergency_demand_fixture().unwrap();
+        assert_eq!(result.national_ed_visits_per_1000, 590.5484);
+        assert_eq!(result.county_rate_median, 606.6914);
+        assert_eq!(result.county_rate_below_national, 1_369);
+        assert_eq!(result.county_rate_above_national, 1_774);
+        assert!(!result.ed_utilization_is_unmet_need);
+    }
+
+    #[test]
+    fn cms_county_emergency_bridge_keeps_cross_county_access_unresolved() {
+        let result = load_cms_county_emergency_demand_fixture().unwrap();
+        let bridge = result.facility_bridge;
+        assert_eq!(bridge.facilities_in_demand_counties, 5_300);
+        assert_eq!(bridge.demand_counties_without_current_hospital, 762);
+        assert_eq!(
+            bridge.no_current_hospital_counties_with_numeric_ed_demand,
+            708
+        );
+        assert_eq!(bridge.no_current_hospital_county_beneficiaries, 1_527_795);
+        assert_eq!(bridge.no_current_hospital_county_ed_visits, 906_563);
+        assert!(!result.county_without_hospital_is_no_access);
+    }
+
+    #[test]
+    fn cms_county_emergency_pack_holds_access_need_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&cms_county_emergency_demand_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["county_demand_context_ready"], true);
+        assert_eq!(output["readiness"]["cross_county_travel_ready"], false);
         assert_eq!(output["readiness"]["geographic_access_ready"], false);
         assert_eq!(output["readiness"]["need_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);

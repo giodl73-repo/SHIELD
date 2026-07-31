@@ -39,6 +39,10 @@ where infrastructure methods do not transfer cleanly.
   six numeric process measures plus ED volume, explicit unavailable values,
   descriptive national comparisons, and a separate 41-facility Rural
   Emergency Hospital reporting surface.
+- A 2024 CMS Original Medicare county emergency-demand bridge covering 3,197
+  counties, 3,143 usable ED-use rates, 5,300 exactly placed current facilities,
+  and 762 counties without a current hospital location, explicitly held from a
+  no-access interpretation until cross-county travel is observed.
 
 ## Next public work
 
@@ -46,11 +50,10 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add current emergency schedules, staffing/vacancy, or real-time operations
-   evidence only with compatible CCN or explicit site identity; historical
-   process measures do not prove present availability.
-2. Add patient-relevant travel/catchment and need denominators compatible with
-   the emergency-service identity and declared baseline/surge basis.
+1. Add patient-relevant travel time or observed patient-flow evidence linking
+   resident origins to emergency-service locations across county boundaries.
+2. Add total-population demand and current emergency operations before testing
+   a specific access or delivery intervention.
 3. Keep county class, formal shortage designation, facility presence, available
    bed use, staffed
    service availability, and patient-relevant travel access distinct.

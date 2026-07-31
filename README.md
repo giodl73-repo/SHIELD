@@ -242,6 +242,30 @@ a descriptive reference—not an access or adequacy floor. Current schedules,
 staffing, travel/catchments, need, causal effects, costs, and savings remain
 held.
 
+### County emergency-use demand context
+
+CMS's 2024 Medicare Geographic Variation file supplies a resident-demand
+denominator for Original Medicare:
+
+| County-demand result | Count or value |
+|---|---:|
+| County rows / usable ED-use rates | 3,197 / 3,143 |
+| Suppressed or missing ED-use rates | 54 |
+| National ED visits / Original Medicare beneficiaries | 16,377,193 / 27,732,177 |
+| National / county-median visits per 1,000 | 590.5484 / 606.6914 |
+| Current facilities placed in covered counties | 5,300 |
+| Demand counties with / without a current hospital | 2,435 / 762 |
+| No-hospital counties with numeric demand | 708 |
+
+Those 708 counties contain 1,527,795 Original Medicare beneficiaries and
+906,563 recorded ED visits. This is a useful cross-county planning queue, but
+not a finding that residents lack access: the source records beneficiary
+residence, not the treating hospital, and does not observe cross-county travel.
+It excludes Medicare Advantage and non-Medicare populations. Higher utilization
+can reflect morbidity, substitution, availability, or practice patterns—not
+necessarily unmet need. Travel time, catchments, total-population demand,
+adequacy, candidates, costs, and savings remain held.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -293,6 +317,8 @@ cargo run -p shield-cli -- cms-certified-services-workforce-baseline
 cargo run -p shield-cli -- cms-certified-services-workforce-held-pack
 cargo run -p shield-cli -- cms-emergency-care-timeliness-baseline
 cargo run -p shield-cli -- cms-emergency-care-timeliness-held-pack
+cargo run -p shield-cli -- cms-county-emergency-demand-baseline
+cargo run -p shield-cli -- cms-county-emergency-demand-held-pack
 cargo test --workspace
 ```
 

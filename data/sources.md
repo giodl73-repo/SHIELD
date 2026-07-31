@@ -168,3 +168,28 @@ Scores cover calendar 2024 or July 2024 through June 2025. SHIELD preserves
 `Not Available` values and uses CMS national values only as descriptive
 references. Facility medians are not live waits, patient-weighted system
 estimates, access floors, need measures, causal effects, or adequacy findings.
+
+## CMS-GEOGRAPHIC-VARIATION-2024
+
+- Publisher: Centers for Medicare & Medicaid Services (CMS)
+- Dataset: Medicare Geographic Variation - by National, State & County
+- Landing page: <https://data.cms.gov/summary-statistics-on-use-and-payments/medicare-geographic-comparisons/medicare-geographic-variation-by-national-state-county>
+- Dataset ID: `6219697b-8f6c-4164-bed4-cd9317c58ebc`
+- Latest year / modified / captured: 2024 / 2026-05-15 / 2026-07-31
+- Source CSV rows / columns: 36,994 / 246
+- Source CSV bytes / SHA-256: 57,865,948 / `10c8304012da34da3ecfe4caf4548927095f693383814d0e79ce6711b6806fad`
+- Data dictionary bytes / SHA-256: 563,924 / `75a8d4bef07d1900a50732c78a2aec688ba3ca132dad1dc6cab1a9243d55109f`
+- Methodology bytes / SHA-256: 196,478 / `e7c6ca8a3cb4cd761f44ee5d5e4ee78a379479a73cd93f69fb116c860a9944ca`
+- Derived fixture: `data/derived/cms-county-emergency-demand-2024.json`
+
+The 2024 all-age county surface contains 3,197 unique county codes. SHIELD
+retains 3,143 numeric ED-visit rates and 54 suppressed or missing values. Valid
+county values sum to 27,595,186 Original Medicare beneficiaries and 16,322,783
+ED visits; the separately reported national totals are 27,732,177 and
+16,377,193, leaving visible residuals rather than imputing suppressed counties.
+
+Exact QIES POS county FIPS places 5,300 current hospitals in 2,435 covered
+counties. Another 762 covered counties contain no current hospital location;
+708 of those have numeric ED demand. County is beneficiary residence, not
+treating-facility location. This is Original Medicare utilization—not total
+population, observed patient flow, travel access, unmet need, or adequacy.
