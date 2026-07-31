@@ -161,6 +161,34 @@ and physician-assistant services and specified automatic or service-based
 facility designations. The result is therefore a valid formula baseline, not a
 CMS hospital staffing, appointment-access, service-line, or adequacy result.
 
+### Hospital operational-capacity spine
+
+CMS's 2023 Hospital Provider Cost Report adds a historical operational layer
+at report-record grain and joins to the current hospital footprint by exact
+CMS Certification Number (CCN):
+
+| Operational result | Count or rate |
+|---|---:|
+| Cost-report records / unique CCNs | 6,103 / 6,040 |
+| Current hospital IDs with an exact cost-report CCN | 5,144 of 5,432 (94.70%) |
+| Current hospital IDs with at least one usable operational report | 5,032 (92.64%) |
+| Usable reports / missing / invalid | 5,953 / 125 / 25 |
+| Valid available bed-days / inpatient days | 241,546,243 / 151,101,088 |
+| Bed-day-weighted inpatient use | 62.56% |
+| Current-footprint matched weighted use | 62.33% |
+
+The 62 repeated CCNs represent 63 adjacent, non-overlapping reporting-period
+pairs, so valid report-period days can be combined without double-counting
+time. Point-in-time bed values are not added across those reports. The 25
+invalid records have inpatient days above available bed-days and remain an
+explicit residual; 125 records lack at least one required operational field.
+
+CMS defines the bed measure as adult and pediatric beds available for patient
+use, not staffed beds. Accordingly, weighted use is an operational observation,
+not proof of staffed capacity, service-line availability, surge readiness,
+patient access, local need, quality, or adequacy. It supplies a shared CCN
+identity and utilization spine for the next source, not a funding candidate.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -186,7 +214,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility baselines, HRSA shortage-registry census, and held HLT handoffs. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -206,6 +234,8 @@ cargo run -p shield-cli -- hrsa-geography-baseline
 cargo run -p shield-cli -- hrsa-geography-held-pack
 cargo run -p shield-cli -- hrsa-capacity-baseline
 cargo run -p shield-cli -- hrsa-capacity-held-pack
+cargo run -p shield-cli -- cms-operational-capacity-baseline
+cargo run -p shield-cli -- cms-operational-capacity-held-pack
 cargo test --workspace
 ```
 

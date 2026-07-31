@@ -13,11 +13,12 @@ Work is organized into small waves and pulses.
 | `2026-07-31-hrsa-primary-care-hpsa` | complete | Current primary-care HPSA registry census with separate quarterly benchmark and held HLT handoff (WP-009). |
 | `2026-07-31-hrsa-primary-care-geography` | complete | Same-vintage area/facility component-geography bridge with explicit county-key residual (WP-010). |
 | `2026-07-31-hrsa-primary-care-capacity` | complete | Same-vintage designation-formula physician FTE/shortage baseline with policy exclusions (WP-011). |
+| `2026-07-31-cms-operational-capacity` | complete | CMS annual available-bed-use spine, explicit validity residuals, and exact current-footprint CCN join (WP-012). |
 
 ## Active wave
 
-- No active wave. The next slice requires an explicit compatible provider/site
-  identity, staffed-service, or patient-access source and a separately accepted
+- No active wave. The next slice requires an explicit CCN-compatible staffed
+  service-line, workforce, or patient-access source and a separately accepted
   work package.
 
 ## Protocol

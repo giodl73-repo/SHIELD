@@ -28,18 +28,23 @@ where infrastructure methods do not transfer cleanly.
 - A same-vintage HRSA designation-formula capacity baseline covering 2,838 area
   and 550 correctional designations, with exact FTE/shortage arithmetic and
   4,294 policy-excluded facility designations kept distinct from zero.
+- A CMS annual cost-report operational spine covering 5,953 valid reports and
+  5,895 CCNs, including exact CCN overlap with 5,032 of 5,432 current hospitals
+  and bed-day-weighted inpatient use with missing and invalid residuals.
 
 ## Next public work
 
-The facility, rurality, and formal shortage-registry baselines are complete.
+The facility, rurality, formal shortage-registry, and available-bed-use
+baselines are complete.
 Next:
 
-1. Build a compatible CMS/HRSA facility-identity bridge only if explicit source
-   identifiers support it; never infer identity from county co-location.
-2. Add an official provider/site identity or staffed service-line source only
-   where a compatible geographic denominator and baseline/surge basis exist;
-   do not relabel designation-formula physician FTE as hospital staffing.
-3. Keep county class, formal shortage designation, facility presence, staffed
+1. Add an official staffed service-line or workforce source only where it uses
+   compatible CCN or explicit provider/site identity; never infer identity from
+   county co-location and never relabel available beds as staffed beds.
+2. Evaluate service-line capacity against a compatible geographic denominator,
+   baseline/surge basis, and patient-relevant access measure.
+3. Keep county class, formal shortage designation, facility presence, available
+   bed use, staffed
    service availability, and patient-relevant travel access distinct.
 4. Test a specific HLT candidate against access, quality/safety, equity,
    adequacy/resilience, cost, and delivery evidence before any fiscal admission.

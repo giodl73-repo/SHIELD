@@ -91,3 +91,33 @@ practitioner-needed formulas, exclude specified facility classes, and state
 that nurse-practitioner and physician-assistant services are not included. The
 derived current-file aggregate is not reconciled to the different-vintage
 quarterly total and is not a unique workforce or population count.
+
+## CMS-HOSPITAL-COST-REPORT-2023
+
+- Publisher: Centers for Medicare & Medicaid Services (CMS)
+- Dataset: Hospital Provider Cost Report, version 2023
+- Landing page: <https://data.cms.gov/provider-compliance/cost-reports/hospital-provider-cost-report>
+- Dataset version ID: `cb8d0018-1bbe-4559-91bf-9429ac344b48`
+- Released: 2026-01-08
+- Captured: 2026-07-31
+- Source rows / unique report IDs / unique CCNs: 6,103 / 6,103 / 6,040
+- Source CSV bytes: 4,130,294
+- Source CSV SHA-256: `614f3d94dfeb84092ca775f90913ab4f843233a4fa90c3df3013efeb5221a757`
+- Data dictionary bytes / SHA-256: 377,560 / `40342bb506d4c39ad6a3306d188f414e97e683c8c7241aa5e0975bdc59c87b81`
+- Methodology bytes / SHA-256: 49,641 / `e216d1f303095bdd57acec09c9f11b70c5188c8ee3460d201a5556db64d9b410`
+- Derived fixture: `data/derived/cms-hospital-operational-capacity-2023.json`
+
+The source contains annual hospital cost-report records, not one row per
+current facility. Sixty-two CCNs repeat across 63 adjacent, non-overlapping
+reporting-period pairs. SHIELD retains report grain, combines only valid
+report-period bed-days and inpatient days, and does not add point-in-time bed
+counts across reports. Of 6,103 records, 5,953 have nonnegative available beds
+and inpatient days with positive bed-days and inpatient days no greater than
+available bed-days; 125 lack a required field and 25 fail that relation.
+
+Exact CCN identity matches 5,144 of the 5,432 hospitals in the May 13, 2026 CMS
+footprint; 5,032 current IDs have at least one usable operational report. The
+different vintages and both residuals remain explicit. CMS's available-bed
+definition is not a staffed-bed definition, and weighted inpatient use does
+not establish service-line capacity, access, need, surge readiness, quality,
+adequacy, costs, or savings.

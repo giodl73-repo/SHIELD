@@ -13,6 +13,8 @@ const HRSA_GEOGRAPHY_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-geography-bridge-2026-07-31.json");
 const HRSA_CAPACITY_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-designation-capacity-2026-07-31.json");
+const CMS_OPERATIONAL_CAPACITY_FIXTURE: &str =
+    include_str!("../../../data/derived/cms-hospital-operational-capacity-2023.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -896,6 +898,195 @@ pub fn hrsa_capacity_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsOperationalCapacitySource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_type_id: String,
+    pub dataset_version_id: String,
+    pub landing_page: String,
+    pub download_url: String,
+    pub data_year: String,
+    pub released: String,
+    pub captured: String,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub dictionary_url: String,
+    pub dictionary_bytes: u64,
+    pub dictionary_sha256: String,
+    pub methodology_url: String,
+    pub methodology_bytes: u64,
+    pub methodology_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsHospitalOperationalCapacity {
+    pub source: CmsOperationalCapacitySource,
+    pub source_report_rows: u64,
+    pub unique_report_ids: u64,
+    pub unique_provider_ccns: u64,
+    pub duplicate_ccn_groups: u64,
+    pub adjacent_duplicate_period_pairs: u64,
+    pub overlapping_duplicate_period_pairs: u64,
+    pub available_bed_rows: u64,
+    pub available_bed_day_rows: u64,
+    pub inpatient_day_rows: u64,
+    pub complete_operational_rows: u64,
+    pub usable_operational_rows: u64,
+    pub usable_operational_ccns: u64,
+    pub missing_operational_rows: u64,
+    pub invalid_operational_rows: u64,
+    pub usable_bed_days: u64,
+    pub usable_inpatient_days: u64,
+    pub weighted_inpatient_use_bps: u64,
+    pub standard_period_rows: u64,
+    pub short_period_rows: u64,
+    pub long_period_rows: u64,
+    pub current_hgi_facilities: u64,
+    pub current_hgi_matched_ccns: u64,
+    pub current_hgi_only_facilities: u64,
+    pub cost_report_only_ccns: u64,
+    pub current_hgi_match_bps: u64,
+    pub current_hgi_usable_operational_rows: u64,
+    pub current_hgi_usable_operational_ccns: u64,
+    pub current_hgi_usable_bed_days: u64,
+    pub current_hgi_usable_inpatient_days: u64,
+    pub current_hgi_weighted_inpatient_use_bps: u64,
+    pub current_hgi_operational_coverage_bps: u64,
+    pub noncurrent_hgi_usable_operational_rows: u64,
+    pub noncurrent_hgi_usable_operational_ccns: u64,
+    pub noncurrent_hgi_usable_bed_days: u64,
+    pub noncurrent_hgi_usable_inpatient_days: u64,
+    pub hgi_source_sha256: String,
+    pub available_beds_are_staffed_beds: bool,
+    pub point_in_time_beds_additive_across_reports: bool,
+    pub facility_adequacy_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl CmsHospitalOperationalCapacity {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        if self.source_report_rows != self.unique_report_ids
+            || self.standard_period_rows + self.short_period_rows + self.long_period_rows
+                != self.source_report_rows
+        {
+            return Err(AccessError::Invariant(
+                "cost-report identity or period partitions do not reconcile".to_string(),
+            ));
+        }
+        if self.complete_operational_rows
+            != self.usable_operational_rows + self.invalid_operational_rows
+            || self.source_report_rows
+                != self.complete_operational_rows + self.missing_operational_rows
+        {
+            return Err(AccessError::Invariant(
+                "operational-field coverage does not reconcile".to_string(),
+            ));
+        }
+        if self.current_hgi_matched_ccns + self.current_hgi_only_facilities
+            != self.current_hgi_facilities
+            || self.current_hgi_matched_ccns + self.cost_report_only_ccns
+                != self.unique_provider_ccns
+        {
+            return Err(AccessError::Invariant(
+                "current-footprint CCN join does not reconcile".to_string(),
+            ));
+        }
+        if self.current_hgi_usable_operational_rows + self.noncurrent_hgi_usable_operational_rows
+            != self.usable_operational_rows
+            || self.current_hgi_usable_operational_ccns
+                + self.noncurrent_hgi_usable_operational_ccns
+                != self.usable_operational_ccns
+            || self.current_hgi_usable_bed_days + self.noncurrent_hgi_usable_bed_days
+                != self.usable_bed_days
+            || self.current_hgi_usable_inpatient_days + self.noncurrent_hgi_usable_inpatient_days
+                != self.usable_inpatient_days
+        {
+            return Err(AccessError::Invariant(
+                "usable current-footprint partition does not reconcile".to_string(),
+            ));
+        }
+        let rounded_bps =
+            |numerator: u64, denominator: u64| (numerator * 10_000 + denominator / 2) / denominator;
+        if self.weighted_inpatient_use_bps
+            != rounded_bps(self.usable_inpatient_days, self.usable_bed_days)
+            || self.current_hgi_weighted_inpatient_use_bps
+                != rounded_bps(
+                    self.current_hgi_usable_inpatient_days,
+                    self.current_hgi_usable_bed_days,
+                )
+            || self.current_hgi_match_bps
+                != rounded_bps(self.current_hgi_matched_ccns, self.current_hgi_facilities)
+            || self.current_hgi_operational_coverage_bps
+                != rounded_bps(
+                    self.current_hgi_usable_operational_ccns,
+                    self.current_hgi_facilities,
+                )
+        {
+            return Err(AccessError::Invariant(
+                "derived operational ratios do not reproduce".to_string(),
+            ));
+        }
+        if self.usable_inpatient_days > self.usable_bed_days
+            || self.current_hgi_usable_inpatient_days > self.current_hgi_usable_bed_days
+            || self.overlapping_duplicate_period_pairs != 0
+            || self.available_beds_are_staffed_beds
+            || self.point_in_time_beds_additive_across_reports
+            || self.facility_adequacy_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "operational-capacity boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_cms_operational_capacity_fixture() -> Result<CmsHospitalOperationalCapacity, AccessError>
+{
+    let result: CmsHospitalOperationalCapacity =
+        serde_json::from_str(CMS_OPERATIONAL_CAPACITY_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn cms_operational_capacity_baseline_json() -> Result<String, AccessError> {
+    let result = load_cms_operational_capacity_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.cms-hospital-operational-capacity.v1",
+        "source":result.source,
+        "report_identity":{"report_rows":result.source_report_rows,"unique_report_ids":result.unique_report_ids,"unique_provider_ccns":result.unique_provider_ccns,"duplicate_ccn_groups":result.duplicate_ccn_groups,"adjacent_duplicate_period_pairs":result.adjacent_duplicate_period_pairs,"overlapping_duplicate_period_pairs":result.overlapping_duplicate_period_pairs},
+        "operational_coverage":{"available_bed_rows":result.available_bed_rows,"available_bed_day_rows":result.available_bed_day_rows,"inpatient_day_rows":result.inpatient_day_rows,"complete_rows":result.complete_operational_rows,"usable_rows":result.usable_operational_rows,"usable_ccns":result.usable_operational_ccns,"missing_rows":result.missing_operational_rows,"invalid_rows":result.invalid_operational_rows},
+        "report_period_observation":{"usable_bed_days":result.usable_bed_days,"usable_inpatient_days":result.usable_inpatient_days,"weighted_inpatient_use_bps":result.weighted_inpatient_use_bps,"standard_period_rows":result.standard_period_rows,"short_period_rows":result.short_period_rows,"long_period_rows":result.long_period_rows},
+        "current_footprint_join":{"current_hgi_facilities":result.current_hgi_facilities,"matched_ccns":result.current_hgi_matched_ccns,"current_hgi_only_facilities":result.current_hgi_only_facilities,"cost_report_only_ccns":result.cost_report_only_ccns,"match_bps":result.current_hgi_match_bps,"usable_operational_ccns":result.current_hgi_usable_operational_ccns,"operational_coverage_bps":result.current_hgi_operational_coverage_bps,"usable_bed_days":result.current_hgi_usable_bed_days,"usable_inpatient_days":result.current_hgi_usable_inpatient_days,"weighted_inpatient_use_bps":result.current_hgi_weighted_inpatient_use_bps},
+        "interpretation":{"allowed":"CMS annual hospital report identity, adult-and-pediatric beds available for patient use, report-period available bed-days, inpatient days, bounded weighted use, and exact CCN overlap with the current CMS hospital footprint","boundary":"Available beds are not staffed beds; weighted inpatient use is not service-line availability, surge capacity, wait time, access, quality, need, or adequacy. Point-in-time bed values are not summed across repeated reports.","held":"staffed-bed capacity, service-line and workforce capacity, patient access, adequacy, candidate effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn cms_operational_capacity_held_pack_json() -> Result<String, AccessError> {
+    let result = load_cms_operational_capacity_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:cms-hospital-operational-capacity-2023:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"United States hospitals represented in the CMS 2023 Hospital Provider Cost Report","population_or_network":"Medicare-certified hospital cost-report records and exact CCN overlap with the May 13, 2026 CMS hospital footprint","ownership":"mixed hospital ownership","time_basis":"CMS 2023 annual cost-report PUF released 2026-01-08; current-footprint join released 2026-05-13","unit_basis":"cost-report records, unique CCNs, available bed-days, inpatient days, and basis points","included":"report identity, adult-and-pediatric available beds and bed-days, inpatient days, weighted report-period use, completeness, invalid residual, and exact CCN overlap","excluded":"staffed beds, service-line staffing, patients, travel, access, need, quality, outcomes, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":result.source.dataset_version_id,"publisher":result.source.publisher,"source_path_or_url":result.source.download_url,"vintage":result.source.data_year,"capture_status":"derived aggregate with report-identity, field-coverage, period, utilization, and exact-CCN-join invariants","checksum_or_null":result.source.csv_sha256,"current_hgi_checksum":result.hgi_source_sha256},
+        "problem":{"baseline_metric":"hospital report-period available-bed use","baseline_value_or_null":result.current_hgi_weighted_inpatient_use_bps,"affected_population_or_exposure_or_null":null,"problem_boundary":"weighted use across valid reports is context, not proof of local capacity, staffed availability, need, or adequacy","usable_report_rows":result.usable_operational_rows,"usable_report_ccns":result.usable_operational_ccns,"current_hgi_usable_ccns":result.current_hgi_usable_operational_ccns,"current_hgi_operational_coverage_bps":result.current_hgi_operational_coverage_bps,"current_hgi_weighted_inpatient_use_bps":result.current_hgi_weighted_inpatient_use_bps,"missing_rows":result.missing_operational_rows,"invalid_rows":result.invalid_operational_rows},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no facility, staffing, payment, funding, service-line, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"report-year/current-footprint vintage difference, missing and invalid reports, non-staffed bed definition, service-line mix, transfers, seasonality, and local demand remain unresolved","transferability_boundary":"aggregate report-period inpatient use cannot establish local access, surge readiness, quality, or outcomes"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"available-bed utilization cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"operational baseline only","peer_goal_basis":null,"evaluation_horizons":"annual cost-report and current-footprint refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"available beds can be unstaffed and aggregate use can conceal service-line or geographic shortages","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add point-in-time bed counts across multiple reports; report-period bed-days and inpatient days use only valid non-overlapping records","observation_cadence":"annual source refresh","reopen_triggers":"compatible staffed service-line, workforce, access, need, outcome, cost, incidence, and delivery evidence for a bounded candidate","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on CMS cost-report or hospital-footprint release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR ISF VET DEF","non_additivity_rule":"operational observations are shared HLT context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"available_bed_use_ready":true,"current_footprint_identity_ready":true,"staffed_capacity_ready":false,"service_line_capacity_ready":false,"facility_adequacy_ready":result.facility_adequacy_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"staffed_capacity_or_adequacy_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1129,6 +1320,52 @@ mod tests {
         assert_eq!(output["identity"]["track"], "HLT");
         assert_eq!(output["readiness"]["provider_capacity_formula_ready"], true);
         assert_eq!(output["readiness"]["unique_physician_supply_ready"], false);
+        assert_eq!(
+            output["service_floors"]["staffed_capacity"],
+            serde_json::Value::Null
+        );
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn cms_operational_capacity_reconciles_report_identity_and_periods() {
+        let result = load_cms_operational_capacity_fixture().unwrap();
+        assert_eq!(result.source_report_rows, 6_103);
+        assert_eq!(result.unique_report_ids, 6_103);
+        assert_eq!(result.unique_provider_ccns, 6_040);
+        assert_eq!(result.duplicate_ccn_groups, 62);
+        assert_eq!(result.adjacent_duplicate_period_pairs, 63);
+        assert_eq!(result.overlapping_duplicate_period_pairs, 0);
+    }
+
+    #[test]
+    fn cms_operational_capacity_preserves_missing_and_invalid_residuals() {
+        let result = load_cms_operational_capacity_fixture().unwrap();
+        assert_eq!(result.complete_operational_rows, 5_978);
+        assert_eq!(result.usable_operational_rows, 5_953);
+        assert_eq!(result.missing_operational_rows, 125);
+        assert_eq!(result.invalid_operational_rows, 25);
+        assert_eq!(result.weighted_inpatient_use_bps, 6_256);
+    }
+
+    #[test]
+    fn cms_operational_capacity_joins_current_footprint_by_exact_ccn() {
+        let result = load_cms_operational_capacity_fixture().unwrap();
+        assert_eq!(result.current_hgi_facilities, 5_432);
+        assert_eq!(result.current_hgi_matched_ccns, 5_144);
+        assert_eq!(result.current_hgi_usable_operational_ccns, 5_032);
+        assert_eq!(result.current_hgi_operational_coverage_bps, 9_264);
+        assert_eq!(result.current_hgi_weighted_inpatient_use_bps, 6_233);
+    }
+
+    #[test]
+    fn cms_operational_capacity_pack_holds_staffing_adequacy_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&cms_operational_capacity_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["available_bed_use_ready"], true);
+        assert_eq!(output["readiness"]["staffed_capacity_ready"], false);
         assert_eq!(
             output["service_floors"]["staffed_capacity"],
             serde_json::Value::Null

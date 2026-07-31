@@ -30,6 +30,10 @@ enum Commands {
     HrsaCapacityBaseline,
     /// Emit the non-authoritative HRSA capacity-formula HLT pack.
     HrsaCapacityHeldPack,
+    /// Reproduce CMS hospital available-bed use from annual cost reports.
+    CmsOperationalCapacityBaseline,
+    /// Emit the non-authoritative CMS operational-capacity HLT pack.
+    CmsOperationalCapacityHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -76,6 +80,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::HrsaCapacityHeldPack => {
             println!("{}", shield_cms_access::hrsa_capacity_held_pack_json()?)
         }
+        Commands::CmsOperationalCapacityBaseline => println!(
+            "{}",
+            shield_cms_access::cms_operational_capacity_baseline_json()?
+        ),
+        Commands::CmsOperationalCapacityHeldPack => println!(
+            "{}",
+            shield_cms_access::cms_operational_capacity_held_pack_json()?
+        ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -145,5 +157,7 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "hrsa-geography-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "hrsa-capacity-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "hrsa-capacity-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-operational-capacity-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-operational-capacity-held-pack"]).is_ok());
     }
 }
