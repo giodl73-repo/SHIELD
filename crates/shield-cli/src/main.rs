@@ -34,6 +34,10 @@ enum Commands {
     CmsOperationalCapacityBaseline,
     /// Emit the non-authoritative CMS operational-capacity HLT pack.
     CmsOperationalCapacityHeldPack,
+    /// Reproduce CMS-certified service modes and employed workforce fields.
+    CmsCertifiedServicesWorkforceBaseline,
+    /// Emit the non-authoritative CMS services/workforce HLT pack.
+    CmsCertifiedServicesWorkforceHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -87,6 +91,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::CmsOperationalCapacityHeldPack => println!(
             "{}",
             shield_cms_access::cms_operational_capacity_held_pack_json()?
+        ),
+        Commands::CmsCertifiedServicesWorkforceBaseline => println!(
+            "{}",
+            shield_cms_access::cms_certified_services_workforce_baseline_json()?
+        ),
+        Commands::CmsCertifiedServicesWorkforceHeldPack => println!(
+            "{}",
+            shield_cms_access::cms_certified_services_workforce_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -159,5 +171,11 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "hrsa-capacity-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-operational-capacity-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-operational-capacity-held-pack"]).is_ok());
+        assert!(
+            Cli::try_parse_from(["shield", "cms-certified-services-workforce-baseline"]).is_ok()
+        );
+        assert!(
+            Cli::try_parse_from(["shield", "cms-certified-services-workforce-held-pack"]).is_ok()
+        );
     }
 }

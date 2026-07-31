@@ -121,3 +121,26 @@ different vintages and both residuals remain explicit. CMS's available-bed
 definition is not a staffed-bed definition, and weighted inpatient use does
 not establish service-line capacity, access, need, surge readiness, quality,
 adequacy, costs, or savings.
+
+## CMS-QIES-POS-2026-Q2
+
+- Publisher: Centers for Medicare & Medicaid Services (CMS)
+- Dataset: Provider of Services File - Quality Improvement and Evaluation System
+- Landing page: <https://data.cms.gov/provider-characteristics/hospitals-and-other-facilities/provider-of-services-file-quality-improvement-and-evaluation-system>
+- Dataset type/version IDs: `8ba0f9b4-9493-4aa0-9f82-44ea9468d1b5` / `bb342fae-b551-40fd-a738-e2e5878f3bbb`
+- Vintage / released / captured: Q2 2026 / 2026-07-16 / 2026-07-31
+- Source CSV rows / columns: 44,707 / 473
+- Hospital rows / unique CCNs: 13,566 / 13,566
+- Source CSV bytes / SHA-256: 30,195,693 / `bcfb9c680f02fdc05a4c82b90e434ad96bb52ea0a1f04eb424bb3dad5a9ffe3d`
+- Data dictionary bytes / SHA-256: 6,141,361 / `08291e4cd5d0221b1201d48be1d58a916af9ea4b608b90c4ebc5ae450ef1f4b7`
+- Methodology bytes / SHA-256: 53,334 / `3f9c45bc360101b8ccb0d9107a912fd0f703e9ef7cf060028b35c29fee15705b`
+- Derived fixture: `data/derived/cms-certified-services-workforce-2026-q2.json`
+
+Exact CCN identity matches 5,422 of 5,432 hospitals in the current HGI
+footprint. Service-mode fields are complete for 5,286; the 136 missing rows are
+112 Veterans Administration and 24 Department of Defense hospitals. CMS codes
+services as not provided, provided by staff, provided under arrangement, or
+both. Those codes do not establish present schedules, hours, throughput, or
+adequacy. Seven workforce fields are retained as provider-recorded employed
+FTE values. They are not unique people or current shift coverage, and source
+zeros and conspicuous maxima remain visible pending compatible validation.

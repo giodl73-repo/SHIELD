@@ -14,12 +14,13 @@ Work is organized into small waves and pulses.
 | `2026-07-31-hrsa-primary-care-geography` | complete | Same-vintage area/facility component-geography bridge with explicit county-key residual (WP-010). |
 | `2026-07-31-hrsa-primary-care-capacity` | complete | Same-vintage designation-formula physician FTE/shortage baseline with policy exclusions (WP-011). |
 | `2026-07-31-cms-operational-capacity` | complete | CMS annual available-bed-use spine, explicit validity residuals, and exact current-footprint CCN join (WP-012). |
+| `2026-07-31-cms-certified-services-workforce` | complete | CMS QIES certified-service modes and recorded employed-FTE spine with exact current-footprint CCN join (WP-013). |
 
 ## Active wave
 
-- No active wave. The next slice requires an explicit CCN-compatible staffed
-  service-line, workforce, or patient-access source and a separately accepted
-  work package.
+- No active wave. The next slice requires compatible current schedule,
+  throughput, patient-access, or need evidence for one bounded service line and
+  a separately accepted work package.
 
 ## Protocol
 

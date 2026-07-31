@@ -15,6 +15,8 @@ const HRSA_CAPACITY_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-designation-capacity-2026-07-31.json");
 const CMS_OPERATIONAL_CAPACITY_FIXTURE: &str =
     include_str!("../../../data/derived/cms-hospital-operational-capacity-2023.json");
+const CMS_CERTIFIED_SERVICES_WORKFORCE_FIXTURE: &str =
+    include_str!("../../../data/derived/cms-certified-services-workforce-2026-q2.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1087,6 +1089,187 @@ pub fn cms_operational_capacity_held_pack_json() -> Result<String, AccessError> 
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsCertifiedServicesSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_type_id: String,
+    pub dataset_version_id: String,
+    pub landing_page: String,
+    pub download_url: String,
+    pub vintage: String,
+    pub released: String,
+    pub captured: String,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub dictionary_url: String,
+    pub dictionary_bytes: u64,
+    pub dictionary_sha256: String,
+    pub methodology_url: String,
+    pub methodology_bytes: u64,
+    pub methodology_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ServiceDeliveryCoverage {
+    pub not_provided: u64,
+    pub staff_only: u64,
+    pub arrangement_only: u64,
+    pub staff_and_arrangement: u64,
+    pub missing: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct WorkforceFieldCoverage {
+    pub present: u64,
+    pub missing: u64,
+    pub source_recorded_zero: u64,
+    pub positive: u64,
+    pub negative: u64,
+    pub recorded_fte_e2: u64,
+    pub maximum_recorded_fte_e2: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsCertifiedServicesWorkforce {
+    pub source: CmsCertifiedServicesSource,
+    pub source_rows: u64,
+    pub source_columns: u64,
+    pub hospital_rows: u64,
+    pub hospital_unique_ccns: u64,
+    pub duplicate_hospital_ccns: u64,
+    pub current_hgi_facilities: u64,
+    pub current_hgi_matched_ccns: u64,
+    pub current_hgi_only_facilities: u64,
+    pub pos_hospital_only_ccns: u64,
+    pub current_hgi_match_bps: u64,
+    pub service_complete_current_ccns: u64,
+    pub service_missing_current_ccns: u64,
+    pub service_complete_current_bps: u64,
+    pub service_missing_type_counts: BTreeMap<String, u64>,
+    pub service_lines: BTreeMap<String, ServiceDeliveryCoverage>,
+    pub workforce_fields: BTreeMap<String, WorkforceFieldCoverage>,
+    pub service_codes_establish_current_schedule_coverage: bool,
+    pub workforce_fte_are_unique_people: bool,
+    pub staffed_service_capacity_ready: bool,
+    pub facility_adequacy_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+    pub hgi_source_sha256: String,
+}
+
+impl CmsCertifiedServicesWorkforce {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        if self.hospital_rows != self.hospital_unique_ccns || self.duplicate_hospital_ccns != 0 {
+            return Err(AccessError::Invariant(
+                "POS hospital identity does not reconcile".to_string(),
+            ));
+        }
+        if self.current_hgi_matched_ccns + self.current_hgi_only_facilities
+            != self.current_hgi_facilities
+            || self.current_hgi_matched_ccns + self.pos_hospital_only_ccns
+                != self.hospital_unique_ccns
+            || self.service_complete_current_ccns + self.service_missing_current_ccns
+                != self.current_hgi_matched_ccns
+            || self.service_missing_type_counts.values().sum::<u64>()
+                != self.service_missing_current_ccns
+        {
+            return Err(AccessError::Invariant(
+                "POS current-footprint join does not reconcile".to_string(),
+            ));
+        }
+        for (name, line) in &self.service_lines {
+            if line.not_provided
+                + line.staff_only
+                + line.arrangement_only
+                + line.staff_and_arrangement
+                + line.missing
+                != self.current_hgi_matched_ccns
+                || line.missing != self.service_missing_current_ccns
+            {
+                return Err(AccessError::Invariant(format!(
+                    "service delivery partition does not reconcile: {name}"
+                )));
+            }
+        }
+        for (name, field) in &self.workforce_fields {
+            if field.present + field.missing != self.current_hgi_matched_ccns
+                || field.source_recorded_zero + field.positive != field.present
+                || field.negative != 0
+                || field.recorded_fte_e2 < field.maximum_recorded_fte_e2
+            {
+                return Err(AccessError::Invariant(format!(
+                    "workforce field partition does not reconcile: {name}"
+                )));
+            }
+        }
+        let rounded_bps =
+            |numerator: u64, denominator: u64| (numerator * 10_000 + denominator / 2) / denominator;
+        if self.current_hgi_match_bps
+            != rounded_bps(self.current_hgi_matched_ccns, self.current_hgi_facilities)
+            || self.service_complete_current_bps
+                != rounded_bps(
+                    self.service_complete_current_ccns,
+                    self.current_hgi_facilities,
+                )
+            || self.service_codes_establish_current_schedule_coverage
+            || self.workforce_fte_are_unique_people
+            || self.staffed_service_capacity_ready
+            || self.facility_adequacy_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "certified-service and workforce claim boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_cms_certified_services_workforce_fixture(
+) -> Result<CmsCertifiedServicesWorkforce, AccessError> {
+    let result: CmsCertifiedServicesWorkforce =
+        serde_json::from_str(CMS_CERTIFIED_SERVICES_WORKFORCE_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn cms_certified_services_workforce_baseline_json() -> Result<String, AccessError> {
+    let result = load_cms_certified_services_workforce_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.cms-certified-services-workforce.v1",
+        "source":result.source,
+        "identity":{"source_rows":result.source_rows,"source_columns":result.source_columns,"hospital_rows":result.hospital_rows,"hospital_unique_ccns":result.hospital_unique_ccns,"duplicate_hospital_ccns":result.duplicate_hospital_ccns},
+        "current_footprint_join":{"current_hgi_facilities":result.current_hgi_facilities,"matched_ccns":result.current_hgi_matched_ccns,"current_hgi_only_facilities":result.current_hgi_only_facilities,"pos_hospital_only_ccns":result.pos_hospital_only_ccns,"match_bps":result.current_hgi_match_bps,"service_complete_ccns":result.service_complete_current_ccns,"service_missing_ccns":result.service_missing_current_ccns,"service_complete_bps":result.service_complete_current_bps,"service_missing_type_counts":result.service_missing_type_counts},
+        "service_code_legend":{"0":"not provided","1":"provided by staff","2":"provided under arrangement","3":"provided by staff and under arrangement"},
+        "service_lines":result.service_lines,
+        "workforce_fields":result.workforce_fields,
+        "interpretation":{"allowed":"Q2 2026 CMS certification-record service delivery modes and employed clinical FTE fields at exact current-footprint CCN grain","boundary":"Certification records do not prove current shift coverage, hours, throughput, appointment supply, response time, surge readiness, unique people, or local adequacy. Source-recorded zeros remain source values, not independently verified absence.","held":"staffed service capacity, patient access, need, quality, outcomes, adequacy, candidate effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn cms_certified_services_workforce_held_pack_json() -> Result<String, AccessError> {
+    let result = load_cms_certified_services_workforce_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:cms-certified-services-workforce-2026-q2:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"current CMS hospital footprint with exact Q2 2026 QIES POS CCN matches","population_or_network":"Medicare-registered hospitals and CMS certification records","ownership":"mixed hospital ownership","time_basis":"Q2 2026 POS file released 2026-07-16 joined to Hospital General Information released 2026-05-13","unit_basis":"facility CCNs, certification service codes, and source-recorded employed FTE hundredths","included":"exact identity, fourteen service delivery modes, seven clinical workforce fields, completeness, and source residuals","excluded":"shift schedules, hours, throughput, appointment supply, travel, access, need, quality, outcomes, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":result.source.dataset_version_id,"publisher":result.source.publisher,"source_path_or_url":result.source.download_url,"vintage":result.source.vintage,"capture_status":"derived aggregate with exact CCN, service-code, workforce-field, and residual invariants","checksum_or_null":result.source.csv_sha256,"dictionary_checksum":result.source.dictionary_sha256,"current_hgi_checksum":result.hgi_source_sha256},
+        "problem":{"baseline_metric":"certification-record service delivery and employed clinical workforce spine","baseline_value_or_null":result.current_hgi_matched_ccns,"affected_population_or_exposure_or_null":null,"problem_boundary":"certification modes and employed FTE do not establish current staffed capacity or local adequacy","current_hgi_facilities":result.current_hgi_facilities,"matched_ccns":result.current_hgi_matched_ccns,"match_bps":result.current_hgi_match_bps,"service_complete_ccns":result.service_complete_current_ccns,"service_missing_ccns":result.service_missing_current_ccns,"service_complete_bps":result.service_complete_current_bps},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no certification, staffing, facility, payment, funding, service-line, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"certification timing, source-recorded zeros, employee-only workforce scope, arrangements, shared clinicians, scheduling, throughput, catchments, and demand remain unresolved","transferability_boundary":"service codes and employed FTE do not establish patient access, service quality, surge readiness, or outcomes"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"certification service codes and employed FTE cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"certified service and workforce registry only","peer_goal_basis":null,"evaluation_horizons":"quarterly POS and current-footprint refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"registry presence can conceal unavailable shifts, insufficient throughput, shared clinicians, or geographic mismatch","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add FTE fields as unique people or service codes as capacity units","observation_cadence":"quarterly source refresh","reopen_triggers":"compatible schedules, throughput, access, need, outcome, cost, incidence, and delivery evidence for a bounded candidate","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on CMS POS or hospital-footprint release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR ISF VET DEF","non_additivity_rule":"certification and workforce observations are shared HLT context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"exact_ccn_identity_ready":true,"certified_service_delivery_ready":true,"employed_workforce_fields_ready":true,"current_schedule_coverage_ready":result.service_codes_establish_current_schedule_coverage,"unique_workforce_ready":result.workforce_fte_are_unique_people,"staffed_service_capacity_ready":result.staffed_service_capacity_ready,"facility_adequacy_ready":result.facility_adequacy_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"current_staffed_capacity_or_adequacy_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1366,6 +1549,66 @@ mod tests {
         assert_eq!(output["identity"]["track"], "HLT");
         assert_eq!(output["readiness"]["available_bed_use_ready"], true);
         assert_eq!(output["readiness"]["staffed_capacity_ready"], false);
+        assert_eq!(
+            output["service_floors"]["staffed_capacity"],
+            serde_json::Value::Null
+        );
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn cms_certified_services_join_current_footprint_by_exact_ccn() {
+        let result = load_cms_certified_services_workforce_fixture().unwrap();
+        assert_eq!(result.hospital_rows, 13_566);
+        assert_eq!(result.hospital_unique_ccns, 13_566);
+        assert_eq!(result.current_hgi_facilities, 5_432);
+        assert_eq!(result.current_hgi_matched_ccns, 5_422);
+        assert_eq!(result.current_hgi_match_bps, 9_982);
+    }
+
+    #[test]
+    fn cms_certified_service_modes_reconcile_with_federal_residual() {
+        let result = load_cms_certified_services_workforce_fixture().unwrap();
+        assert_eq!(result.service_complete_current_ccns, 5_286);
+        assert_eq!(result.service_missing_current_ccns, 136);
+        assert_eq!(
+            result.service_missing_type_counts["Acute Care - Veterans Administration"],
+            112
+        );
+        let emergency = &result.service_lines["dedicated_emergency_department"];
+        assert_eq!(emergency.staff_only, 2_494);
+        assert_eq!(emergency.arrangement_only, 209);
+        assert_eq!(emergency.staff_and_arrangement, 1_651);
+    }
+
+    #[test]
+    fn cms_workforce_fields_preserve_recorded_zero_and_outlier_boundaries() {
+        let result = load_cms_certified_services_workforce_fixture().unwrap();
+        let rn = &result.workforce_fields["registered_nurse"];
+        assert_eq!(rn.present, 5_422);
+        assert_eq!(rn.source_recorded_zero, 325);
+        assert_eq!(rn.positive, 5_097);
+        assert_eq!(rn.recorded_fte_e2, 122_496_228);
+        assert_eq!(rn.maximum_recorded_fte_e2, 6_478_200);
+        assert!(!result.workforce_fte_are_unique_people);
+    }
+
+    #[test]
+    fn cms_certified_services_pack_holds_current_capacity_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&cms_certified_services_workforce_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(
+            output["readiness"]["certified_service_delivery_ready"],
+            true
+        );
+        assert_eq!(
+            output["readiness"]["current_schedule_coverage_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["staffed_service_capacity_ready"], false);
         assert_eq!(
             output["service_floors"]["staffed_capacity"],
             serde_json::Value::Null

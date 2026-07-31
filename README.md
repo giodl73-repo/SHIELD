@@ -189,6 +189,33 @@ not proof of staffed capacity, service-line availability, surge readiness,
 patient access, local need, quality, or adequacy. It supplies a shared CCN
 identity and utilization spine for the next source, not a funding candidate.
 
+### Certified services and recorded workforce
+
+CMS's Q2 2026 QIES Provider of Services file supplies that next identity layer.
+An exact CCN join covers 5,422 of 5,432 current hospitals (99.82%). Fourteen
+service fields are complete for 5,286 current hospitals (97.31%); the 136-row
+service residual is entirely 112 Veterans Administration and 24 Department of
+Defense hospitals.
+
+| Example certified service | Staff only | Arrangement only | Both | Not provided | Missing |
+|---|---:|---:|---:|---:|---:|
+| Dedicated emergency department | 2,494 | 209 | 1,651 | 932 | 136 |
+| Inpatient surgery | 3,215 | 74 | 664 | 1,333 | 136 |
+| Medical/surgical ICU | 2,670 | 59 | 414 | 2,143 | 136 |
+| Obstetrics | 2,382 | 85 | 379 | 2,440 | 136 |
+
+The same matched rows contain complete fields for seven employed-workforce
+categories, including registered nurses, physicians, nurse practitioners, and
+physician assistants. SHIELD preserves source-recorded zeros and conspicuous
+maximum values instead of silently cleaning or interpreting them. These values
+are recorded provider FTEs—not unique people, shifts, hours, vacancies, agency
+staff, appointment supply, throughput, or current service coverage.
+
+Certification establishes a reported delivery mode (`staff`, `under
+arrangement`, both, or not provided); it does not prove that a service is open
+now or has enough staff. The result is therefore a service/workforce evidence
+spine for a future access test, not a capacity, adequacy, or savings claim.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -214,7 +241,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, CMS certified-service/workforce, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -236,6 +263,8 @@ cargo run -p shield-cli -- hrsa-capacity-baseline
 cargo run -p shield-cli -- hrsa-capacity-held-pack
 cargo run -p shield-cli -- cms-operational-capacity-baseline
 cargo run -p shield-cli -- cms-operational-capacity-held-pack
+cargo run -p shield-cli -- cms-certified-services-workforce-baseline
+cargo run -p shield-cli -- cms-certified-services-workforce-held-pack
 cargo test --workspace
 ```
 
