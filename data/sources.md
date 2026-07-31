@@ -193,3 +193,29 @@ counties. Another 762 covered counties contain no current hospital location;
 708 of those have numeric ED demand. County is beneficiary residence, not
 treating-facility location. This is Original Medicare utilization—not total
 population, observed patient flow, travel access, unmet need, or adequacy.
+
+## CMS-HSA-INPATIENT-FLOW-2024
+
+- Publisher: Centers for Medicare & Medicaid Services (CMS)
+- Dataset: Hospital Service Area, 2024
+- Landing page: <https://data.cms.gov/provider-summary-by-type-of-service/medicare-inpatient-hospitals/hospital-service-area>
+- Dataset version ID: `22e11819-48e8-44a8-a036-fd6351f4173a`
+- Modified / captured: 2025-09-10 / 2026-07-31
+- Source CSV rows / columns: 1,156,702 / 5
+- Source CSV bytes / SHA-256: 26,951,355 / `1698b7fb8372ebafe126099e2b2406a841411f6eb2d22f50ca9add545bff5aa8`
+- Data dictionary bytes / SHA-256: 70,220 / `06535c24d23404b14befa8248800dabd0503232f3166f5a5292e4c05384943d1`
+- Methodology bytes / SHA-256: 69,971 / `ddd800c5d4904a30ae2885a5a0c98149edb4badd1a3ec919e007928b521390e6`
+- Q4 2024 QIES POS rows / columns: 115,647 / 473
+- Q4 POS bytes / SHA-256: 83,978,787 / `25cbd95b347dfc92130d4a4a3bc7c79dc7bbd8fbd1a16fc294029f22e7bfcb09`
+- Derived fixture: `data/derived/cms-inpatient-origin-destination-2024.json`
+
+The HSA source contains 146,996 numeric and 1,009,706 suppressed
+hospital/origin-ZIP pairs. Exact CCN identity joins 5,902 HSA providers to the
+same-year Q4 POS hospital surface. Of 13,330,468 matched observable cases with
+a valid origin ZIP, 11,586,529 (86.92%) have an origin ZIP different from the
+hospital ZIP.
+
+The result observes inpatient discharge flow, not unique patients. Different
+ZIP does not establish county crossing, distance, travel time,
+emergency-department destination, reason for travel, burden, access failure,
+unmet need, or adequacy.

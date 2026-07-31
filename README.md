@@ -266,6 +266,28 @@ can reflect morbidity, substitution, availability, or practice patterns—not
 necessarily unmet need. Travel time, catchments, total-population demand,
 adequacy, candidates, costs, and savings remain held.
 
+### Observed inpatient origin-destination flow
+
+CMS's 2024 Hospital Service Area file supplies observed Medicare inpatient
+hospital/beneficiary-mailing-ZIP pairs. SHIELD joins them by exact CCN to the
+same-year Q4 Provider of Services hospital surface:
+
+| Inpatient-flow result | Count or value |
+|---|---:|
+| HSA rows / providers | 1,156,702 / 7,536 |
+| Numeric / suppressed pairs | 146,996 / 1,009,706 |
+| Exact Q4 POS provider matches | 5,902 |
+| Matched observable cases | 13,330,744 |
+| Classified valid-origin cases | 13,330,468 |
+| Different-ZIP cases | 11,586,529 (86.92%) |
+
+The result confirms that inpatient care commonly crosses ZIP boundaries, so a
+hospital inside or outside a resident's county cannot by itself describe the
+care pathway. It does not show county crossings, road distance, travel time,
+emergency-department destinations, reasons for travel, unique patients, burden,
+or access failure. Suppressed pairs remain suppressed. Emergency-specific flow,
+total-population demand, adequacy, candidates, costs, and savings remain held.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -291,7 +313,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records

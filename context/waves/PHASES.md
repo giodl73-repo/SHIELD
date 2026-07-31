@@ -17,11 +17,12 @@ Work is organized into small waves and pulses.
 | `2026-07-31-cms-certified-services-workforce` | complete | CMS QIES certified-service modes and recorded employed-FTE spine with exact current-footprint CCN join (WP-013). |
 | `2026-07-31-cms-emergency-care-timeliness` | complete | CMS emergency-process measures, unavailable residuals, national references, and separate Rural Emergency Hospital surface (WP-014). |
 | `2026-07-31-cms-county-emergency-demand` | complete | CMS Original Medicare county emergency-use denominator and exact facility-location bridge with cross-county access held (WP-015). |
+| `2026-07-31-cms-inpatient-origin-destination` | complete | CMS Medicare inpatient beneficiary-ZIP/hospital flow with same-year provider identity and emergency/travel claims held (WP-016). |
 
 ## Active wave
 
-- No active wave. The next slice requires observed cross-county patient flow or
-  patient-relevant travel time plus total-population demand and a separately
+- No active wave. The next slice requires emergency-specific cross-county flow
+  or patient-relevant travel time plus total-population demand and a separately
   accepted work package.
 
 ## Protocol

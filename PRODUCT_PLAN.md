@@ -43,15 +43,19 @@ where infrastructure methods do not transfer cleanly.
   counties, 3,143 usable ED-use rates, 5,300 exactly placed current facilities,
   and 762 counties without a current hospital location, explicitly held from a
   no-access interpretation until cross-county travel is observed.
+- A 2024 CMS inpatient origin-destination baseline covering 1,156,702
+  hospital/beneficiary-ZIP pairs, with 5,902 exact same-year provider matches
+  and 11,586,529 of 13,330,468 classified observable cases crossing a ZIP
+  boundary, without treating inpatient flow as emergency access or travel time.
 
-## Next public work
+## Next work
 
 The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add patient-relevant travel time or observed patient-flow evidence linking
-   resident origins to emergency-service locations across county boundaries.
+1. Add patient-relevant travel time or emergency-specific patient-flow evidence
+   linking resident origins to service locations across county boundaries.
 2. Add total-population demand and current emergency operations before testing
    a specific access or delivery intervention.
 3. Keep county class, formal shortage designation, facility presence, available

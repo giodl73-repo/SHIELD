@@ -21,6 +21,8 @@ const CMS_EMERGENCY_CARE_TIMELINESS_FIXTURE: &str =
     include_str!("../../../data/derived/cms-emergency-care-timeliness-2026-05.json");
 const CMS_COUNTY_EMERGENCY_DEMAND_FIXTURE: &str =
     include_str!("../../../data/derived/cms-county-emergency-demand-2024.json");
+const CMS_INPATIENT_ORIGIN_DESTINATION_FIXTURE: &str =
+    include_str!("../../../data/derived/cms-inpatient-origin-destination-2024.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1645,6 +1647,176 @@ pub fn cms_county_emergency_demand_held_pack_json() -> Result<String, AccessErro
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct InpatientFlowSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_id: String,
+    pub landing_page: String,
+    pub download_url: String,
+    pub modified: String,
+    pub captured: String,
+    pub source_rows: u64,
+    pub source_columns: u64,
+    pub source_providers: u64,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub dictionary_bytes: u64,
+    pub dictionary_sha256: String,
+    pub methodology_bytes: u64,
+    pub methodology_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct InpatientFlowProviderSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub dataset_type_id: String,
+    pub dataset_version_id: String,
+    pub download_url: String,
+    pub temporal: String,
+    pub modified: String,
+    pub source_rows: u64,
+    pub source_columns: u64,
+    pub hospital_rows: u64,
+    pub unique_hospital_ccns: u64,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct CmsInpatientOriginDestination {
+    pub source: InpatientFlowSource,
+    pub provider_source: InpatientFlowProviderSource,
+    pub year: u64,
+    pub hsa_rows: u64,
+    pub hsa_numeric_rows: u64,
+    pub hsa_suppressed_rows: u64,
+    pub hsa_observable_cases: u64,
+    pub exact_pos_provider_ccns: u64,
+    pub unmatched_hsa_provider_ccns: u64,
+    pub matched_rows: u64,
+    pub matched_numeric_rows: u64,
+    pub matched_suppressed_rows: u64,
+    pub matched_observable_cases: u64,
+    pub unmatched_rows: u64,
+    pub unmatched_numeric_rows: u64,
+    pub unmatched_suppressed_rows: u64,
+    pub unmatched_observable_cases: u64,
+    pub matched_unique_origin_zips: u64,
+    pub invalid_origin_numeric_rows: u64,
+    pub invalid_origin_cases: u64,
+    pub classified_observable_cases: u64,
+    pub same_zip_numeric_pairs: u64,
+    pub different_zip_numeric_pairs: u64,
+    pub same_zip_cases: u64,
+    pub different_zip_cases: u64,
+    pub different_zip_case_bps: u64,
+    pub observed_inpatient_origin_destination_flow: bool,
+    pub cross_zip_inpatient_flow_observed: bool,
+    pub cross_county_flow_observed: bool,
+    pub emergency_destination_observed: bool,
+    pub travel_time_ready: bool,
+    pub geographic_access_ready: bool,
+    pub need_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl CmsInpatientOriginDestination {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        if self.hsa_rows != self.source.source_rows
+            || self.hsa_numeric_rows + self.hsa_suppressed_rows != self.hsa_rows
+            || self.exact_pos_provider_ccns + self.unmatched_hsa_provider_ccns
+                != self.source.source_providers
+            || self.matched_rows + self.unmatched_rows != self.hsa_rows
+            || self.matched_numeric_rows + self.unmatched_numeric_rows != self.hsa_numeric_rows
+            || self.matched_suppressed_rows + self.unmatched_suppressed_rows
+                != self.hsa_suppressed_rows
+            || self.matched_observable_cases + self.unmatched_observable_cases
+                != self.hsa_observable_cases
+            || self.matched_numeric_rows
+                != self.same_zip_numeric_pairs
+                    + self.different_zip_numeric_pairs
+                    + self.invalid_origin_numeric_rows
+            || self.matched_observable_cases
+                != self.classified_observable_cases + self.invalid_origin_cases
+            || self.classified_observable_cases != self.same_zip_cases + self.different_zip_cases
+            || self.provider_source.hospital_rows != self.provider_source.unique_hospital_ccns
+        {
+            return Err(AccessError::Invariant(
+                "inpatient origin-destination partitions do not reconcile".to_string(),
+            ));
+        }
+        let rounded_bps = (self.different_zip_cases * 10_000
+            + self.classified_observable_cases / 2)
+            / self.classified_observable_cases;
+        if rounded_bps != self.different_zip_case_bps {
+            return Err(AccessError::Invariant(
+                "inpatient cross-ZIP case share does not reconcile".to_string(),
+            ));
+        }
+        if !self.observed_inpatient_origin_destination_flow
+            || !self.cross_zip_inpatient_flow_observed
+            || self.cross_county_flow_observed
+            || self.emergency_destination_observed
+            || self.travel_time_ready
+            || self.geographic_access_ready
+            || self.need_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "inpatient-flow claim boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_cms_inpatient_origin_destination_fixture(
+) -> Result<CmsInpatientOriginDestination, AccessError> {
+    let result: CmsInpatientOriginDestination =
+        serde_json::from_str(CMS_INPATIENT_ORIGIN_DESTINATION_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn cms_inpatient_origin_destination_baseline_json() -> Result<String, AccessError> {
+    let result = load_cms_inpatient_origin_destination_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.cms-inpatient-origin-destination.v1",
+        "source":result.source,
+        "provider_source":result.provider_source,
+        "identity":{"year":result.year,"hsa_rows":result.hsa_rows,"hsa_providers":result.source.source_providers,"exact_q4_pos_provider_ccns":result.exact_pos_provider_ccns,"unmatched_hsa_provider_ccns":result.unmatched_hsa_provider_ccns},
+        "suppression":{"numeric_rows":result.hsa_numeric_rows,"suppressed_rows":result.hsa_suppressed_rows,"observable_cases":result.hsa_observable_cases},
+        "matched_flow":{"rows":result.matched_rows,"numeric_rows":result.matched_numeric_rows,"suppressed_rows":result.matched_suppressed_rows,"observable_cases":result.matched_observable_cases,"unique_origin_zips":result.matched_unique_origin_zips,"invalid_origin_numeric_rows":result.invalid_origin_numeric_rows,"invalid_origin_cases":result.invalid_origin_cases},
+        "classified_observable_flow":{"cases":result.classified_observable_cases,"same_zip_cases":result.same_zip_cases,"different_zip_cases":result.different_zip_cases,"different_zip_case_bps":result.different_zip_case_bps},
+        "interpretation":{"allowed":"observed 2024 Medicare inpatient origin-ZIP to hospital-CCN discharge flow, suppression residuals, exact same-year Q4 POS identity, and same- versus different-ZIP case counts","boundary":"Different ZIP establishes cross-ZIP inpatient use only. It is not a county crossing, road distance, travel time, emergency-department destination, unique-patient count, reason for travel, or access finding.","held":"cross-county emergency flow, travel time, total-population demand, unmet need, adequacy, candidates, effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn cms_inpatient_origin_destination_held_pack_json() -> Result<String, AccessError> {
+    let result = load_cms_inpatient_origin_destination_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:cms-inpatient-origin-destination-2024:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"beneficiary mailing ZIP to hospital ZIP for exact 2024 HSA/Q4 POS CCN matches","population_or_network":"Medicare inpatient fee-for-service and Medicare Advantage claims included by CMS, where applicable","ownership":"mixed hospital ownership","time_basis":"calendar 2024 claims with Q4 2024 provider locations","unit_basis":"hospital/beneficiary-ZIP pairs and inpatient cases or discharges","included":"observed inpatient origin-destination flow, suppression residuals, exact same-year provider identity, and same- versus different-ZIP observable cases","excluded":"unique patients, emergency-department destinations, county crossings, road distance, travel time, reasons for travel, total population, access, adequacy, candidates, effects, and costs"},
+        "source_custody":{"source_id":result.source.dataset_id,"publisher":result.source.publisher,"source_path_or_url":result.source.download_url,"vintage":"2024","capture_status":"derived aggregate with source, suppression, exact-provider, origin-validity, and case-share invariants","checksum_or_null":result.source.csv_sha256,"dictionary_checksum":result.source.dictionary_sha256,"methodology_checksum":result.source.methodology_sha256,"provider_source_id":result.provider_source.dataset_version_id,"provider_checksum":result.provider_source.csv_sha256},
+        "problem":{"baseline_metric":"share of classified observable inpatient cases whose beneficiary mailing ZIP differs from the hospital ZIP","baseline_value_or_null":result.different_zip_case_bps,"affected_population_or_exposure_or_null":result.classified_observable_cases,"problem_boundary":"cross-ZIP inpatient reliance demonstrates patient flow beyond facility co-location but does not establish emergency access, distance, burden, or unmet need","same_zip_cases":result.same_zip_cases,"different_zip_cases":result.different_zip_cases,"suppressed_pairs":result.matched_suppressed_rows},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no hospital siting, transport, referral, staffing, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"suppressed pairs, mailing-address accuracy, repeated cases, cross-ZIP geometry, diagnosis, urgency, referral, choice, distance, travel mode, and current conditions remain unresolved","transferability_boundary":"inpatient discharge flow does not establish emergency-department flow or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"observed Medicare inpatient origin-destination context only","netting_rule":"inpatient flow observations cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"inpatient origin-destination observation only","peer_goal_basis":null,"evaluation_horizons":"annual CMS refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"cross-ZIP flow may reflect ordinary referral, specialty care, network choice, proximity, or address geometry rather than access failure","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add cases to county ED visits or interpret cases as unique beneficiaries","observation_cadence":"annual CMS release","reopen_triggers":"emergency-specific cross-county destinations or patient-relevant travel time plus total-population demand, operations, outcomes, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on CMS Hospital Service Area release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR VET DEF TRN","non_additivity_rule":"inpatient flow is shared HLT context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"observed_inpatient_flow_ready":true,"cross_zip_flow_ready":true,"cross_county_emergency_flow_ready":result.cross_county_flow_observed,"travel_time_ready":result.travel_time_ready,"geographic_access_ready":result.geographic_access_ready,"need_ready":result.need_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"different_zip_as_access_failure_allowed":false,"emergency_flow_claim_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2093,6 +2265,48 @@ mod tests {
         assert_eq!(output["readiness"]["geographic_access_ready"], false);
         assert_eq!(output["readiness"]["need_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn cms_inpatient_flow_reconciles_source_suppression_and_provider_identity() {
+        let result = load_cms_inpatient_origin_destination_fixture().unwrap();
+        assert_eq!(result.hsa_rows, 1_156_702);
+        assert_eq!(result.hsa_numeric_rows, 146_996);
+        assert_eq!(result.hsa_suppressed_rows, 1_009_706);
+        assert_eq!(result.exact_pos_provider_ccns, 5_902);
+        assert_eq!(result.unmatched_hsa_provider_ccns, 1_634);
+        assert_eq!(result.matched_observable_cases, 13_330_744);
+    }
+
+    #[test]
+    fn cms_inpatient_flow_preserves_cross_zip_case_arithmetic() {
+        let result = load_cms_inpatient_origin_destination_fixture().unwrap();
+        assert_eq!(result.classified_observable_cases, 13_330_468);
+        assert_eq!(result.same_zip_cases, 1_743_939);
+        assert_eq!(result.different_zip_cases, 11_586_529);
+        assert_eq!(result.different_zip_case_bps, 8_692);
+        assert!(result.cross_zip_inpatient_flow_observed);
+        assert!(!result.cross_county_flow_observed);
+    }
+
+    #[test]
+    fn cms_inpatient_flow_pack_holds_emergency_access_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&cms_inpatient_origin_destination_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["observed_inpatient_flow_ready"], true);
+        assert_eq!(
+            output["readiness"]["cross_county_emergency_flow_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["travel_time_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(
+            output["claim_boundaries"]["emergency_flow_claim_allowed"],
+            false
+        );
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
     }
 }
