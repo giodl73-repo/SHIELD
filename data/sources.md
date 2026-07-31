@@ -18,3 +18,21 @@ flag, and state or territory. It does not retain the facility rows in this
 repository. Counts describe the CMS registry release; they do not establish
 travel access, staffed capacity, service availability, quality, outcomes,
 equity, need, adequacy, cost, savings, or causal effect.
+
+## USDA-ERS-RUCC-2023
+
+- Publisher: U.S. Department of Agriculture, Economic Research Service
+- Dataset: 2023 Rural-Urban Continuum Codes
+- Landing page: <https://www.ers.usda.gov/data-products/rural-urban-continuum-codes>
+- Last updated: 2024-01-22
+- Captured: 2026-07-31
+- Source CSV rows: 9,703 long-form rows
+- County/county-equivalent entities: 3,235; entities with RUCC values: 3,233
+- Source CSV bytes: 629,322
+- Source CSV SHA-256: `ec455ee2a8bc5fc8e070575ea5bee7dce46fc6037f8c3449cbf56e8b45331fa7`
+- Derived fixture: `data/derived/cms-usda-rurality-join-2026-05-13.json`
+
+The join uses state and an explicitly normalized county name. It applies no
+fuzzy matching or manual aliases and reports 72 CMS facilities as unmatched.
+RUCC is a county classification; it does not measure patient rurality, distance,
+travel time, hospital service areas, staffing, shortage, need, or adequacy.

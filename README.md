@@ -73,6 +73,24 @@ be added as interchangeable capacity. Travel time, staffed beds, clinicians,
 service breadth, wait time, affordability, quality, outcomes, equity, need,
 costs, and savings all remain held.
 
+### County rurality distribution
+
+The second public-data slice joins that footprint to USDA ERS 2023
+Rural-Urban Continuum Codes without fuzzy matching or hand-written aliases:
+
+| Deterministic join result | Facilities |
+|---|---:|
+| Matched to a RUCC county/county-equivalent | 5,360 |
+| Metro county (RUCC 1–3) | 3,456 |
+| Nonmetro county (RUCC 4–9) | 1,904 |
+| Unmatched and left unallocated | 72 |
+
+Among matched facilities, 1,086 of 1,371 Critical Access Hospitals and 36 of
+41 Rural Emergency Hospitals are in nonmetro counties. This describes county
+class, not distance, travel time, patient rurality, staffing, shortage, need,
+service quality, or adequacy. The 72 unmatched rows remain visible rather than
+being silently assigned.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -110,6 +128,8 @@ or clinical recommendations belong in this repository.
 cargo run -p shield-cli -- --help
 cargo run -p shield-cli -- cms-access-baseline
 cargo run -p shield-cli -- cms-access-held-pack
+cargo run -p shield-cli -- cms-rurality-baseline
+cargo run -p shield-cli -- cms-rurality-held-pack
 cargo test --workspace
 ```
 

@@ -14,6 +14,10 @@ enum Commands {
     CmsAccessBaseline,
     /// Emit the non-authoritative HLT evidence pack for Taxlane review.
     CmsAccessHeldPack,
+    /// Reproduce the bounded CMS-USDA county rurality join.
+    CmsRuralityBaseline,
+    /// Emit the non-authoritative rurality HLT pack for Taxlane review.
+    CmsRuralityHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -36,6 +40,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
         Commands::CmsAccessBaseline => println!("{}", shield_cms_access::baseline_json()?),
         Commands::CmsAccessHeldPack => println!("{}", shield_cms_access::held_pack_json()?),
+        Commands::CmsRuralityBaseline => {
+            println!("{}", shield_cms_access::rurality_baseline_json()?)
+        }
+        Commands::CmsRuralityHeldPack => {
+            println!("{}", shield_cms_access::rurality_held_pack_json()?)
+        }
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -97,5 +107,7 @@ mod tests {
     fn parses_cms_access_commands() {
         assert!(Cli::try_parse_from(["shield", "cms-access-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-access-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-rurality-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-rurality-held-pack"]).is_ok());
     }
 }

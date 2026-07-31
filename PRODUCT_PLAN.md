@@ -15,15 +15,17 @@ where infrastructure methods do not transfer cleanly.
 - A deterministic CMS-derived aggregate fixture; no patient records.
 - A fourteen-section held HLT handoff that cannot authorize savings, allocation,
   facility or clinical action, public release, or rate changes.
+- A deterministic CMS–USDA county rurality join covering 5,360 of 5,432
+  facilities while preserving 72 unmatched rows as an explicit residual.
 
 ## Next public work
 
 The first public aggregate-data slice is complete. Next:
 
-1. Join a bounded official rurality or shortage-area geography without inferring
-   access from state totals.
-2. Add staffed service-line capacity only where a compatible public denominator
-   and baseline/surge basis exist.
+1. Add an official shortage-area or staffed service-line capacity source only
+   where a compatible geographic denominator and baseline/surge basis exist.
+2. Distinguish county class, formal shortage designation, facility presence,
+   staffed service availability, and patient-relevant travel access.
 3. Test a specific HLT candidate against access, quality/safety, equity,
    adequacy/resilience, cost, and delivery evidence before any fiscal admission.
 

@@ -1,0 +1,67 @@
+{
+  "cms_source_sha256": "83c98b2e8687580e0482b13e1e9acd5813534be243e5ccd9f55556a869595d40",
+  "usda_source": {
+    "publisher": "U.S. Department of Agriculture, Economic Research Service",
+    "dataset_title": "2023 Rural-Urban Continuum Codes",
+    "landing_page": "https://www.ers.usda.gov/data-products/rural-urban-continuum-codes",
+    "download_url": "https://www.ers.usda.gov/media/5768/2023-rural-urban-continuum-codes.csv?v=51663",
+    "last_updated": "2024-01-22",
+    "captured": "2026-07-31",
+    "source_rows": 9703,
+    "county_entities": 3235,
+    "rucc_rows": 3233,
+    "csv_bytes": 629322,
+    "csv_sha256": "ec455ee2a8bc5fc8e070575ea5bee7dce46fc6037f8c3449cbf56e8b45331fa7"
+  },
+  "normalization_contract": "Join state plus Windows-1252-decoded, case-folded, diacritic-folded county name after removing only City and Borough, Census Area, County, Parish, Borough, Municipio, or Municipality suffixes; strip remaining non-alphanumerics; reject duplicate keys; apply no fuzzy match or manual aliases.",
+  "total_cms_facilities": 5432,
+  "matched_facilities": 5360,
+  "unmatched_facilities": 72,
+  "match_bps": 9867,
+  "matched_counties": 2453,
+  "metro": {
+    "facilities": 3456,
+    "counties_with_matched_facilities": 967,
+    "emergency_service_yes": 2687,
+    "emergency_service_no": 769,
+    "hospital_types": {
+      "Acute Care - Department of Defense": 30,
+      "Acute Care - Veterans Administration": 114,
+      "Acute Care Hospitals": 2379,
+      "Childrens": 92,
+      "Critical Access Hospitals": 285,
+      "Long-term": 4,
+      "Psychiatric": 547,
+      "Rural Emergency Hospital": 5
+    }
+  },
+  "nonmetro": {
+    "facilities": 1904,
+    "counties_with_matched_facilities": 1486,
+    "emergency_service_yes": 1760,
+    "emergency_service_no": 144,
+    "hospital_types": {
+      "Acute Care - Department of Defense": 2,
+      "Acute Care - Veterans Administration": 16,
+      "Acute Care Hospitals": 692,
+      "Childrens": 0,
+      "Critical Access Hospitals": 1086,
+      "Long-term": 1,
+      "Psychiatric": 71,
+      "Rural Emergency Hospital": 36
+    }
+  },
+  "metro_share_bps": 6448,
+  "nonmetro_share_bps": 3552,
+  "metro_emergency_yes_bps": 7775,
+  "nonmetro_emergency_yes_bps": 9244,
+  "nonmetro_critical_access_share_bps": 7921,
+  "nonmetro_rural_emergency_share_bps": 8780,
+  "rucc_code_facilities": {
+    "1": 1969, "2": 921, "3": 566, "4": 306, "5": 135,
+    "6": 435, "7": 294, "8": 322, "9": 412
+  },
+  "unmatched_by_state": {
+    "AK": 4, "CT": 36, "DC": 10, "LA": 16, "MN": 3, "NE": 1, "VI": 2
+  }
+}
