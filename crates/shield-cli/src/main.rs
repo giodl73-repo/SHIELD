@@ -58,6 +58,10 @@ enum Commands {
     MinnesotaStrokeDriveTimeBaseline,
     /// Emit the non-authoritative Minnesota stroke-access HLT pack.
     MinnesotaStrokeDriveTimeHeldPack,
+    /// Reproduce calendar 2025 NYC EMS response-to-scene observations.
+    NycEmsResponseTimeBaseline,
+    /// Emit the non-authoritative NYC EMS response-time HLT pack.
+    NycEmsResponseTimeHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -160,6 +164,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             shield_cms_access::minnesota_stroke_drive_time_held_pack_json()?
         ),
+        Commands::NycEmsResponseTimeBaseline => println!(
+            "{}",
+            shield_cms_access::nyc_ems_response_time_baseline_json()?
+        ),
+        Commands::NycEmsResponseTimeHeldPack => println!(
+            "{}",
+            shield_cms_access::nyc_ems_response_time_held_pack_json()?
+        ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -251,5 +263,7 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "nemsis-ems-destination-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "minnesota-stroke-drive-time-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "minnesota-stroke-drive-time-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "nyc-ems-response-time-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "nyc-ems-response-time-held-pack"]).is_ok());
     }
 }

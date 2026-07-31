@@ -27,6 +27,8 @@ const NEMSIS_EMS_DESTINATION_FIXTURE: &str =
     include_str!("../../../data/derived/nemsis-ems-destination-2024.json");
 const MINNESOTA_STROKE_DRIVE_TIME_FIXTURE: &str =
     include_str!("../../../data/derived/minnesota-stroke-drive-time-2026-07.json");
+const NYC_EMS_RESPONSE_TIME_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-response-time-2025.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -2055,6 +2057,166 @@ pub fn minnesota_stroke_drive_time_held_pack_json() -> Result<String, AccessErro
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSource {
+    pub publisher: String,
+    pub portal: String,
+    pub dataset_title: String,
+    pub dataset_id: String,
+    pub landing_page: String,
+    pub api_endpoint: String,
+    pub rows_updated: String,
+    pub captured: String,
+    pub data_dictionary_filename: String,
+    pub data_dictionary_bytes: u64,
+    pub data_dictionary_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsQueryCustody {
+    pub label: String,
+    pub select: String,
+    pub where_clause: Option<String>,
+    pub group_by: Option<String>,
+    pub order_by: Option<String>,
+    pub response_bytes: u64,
+    pub response_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsTimingAggregate {
+    pub events: u64,
+    pub average_response_seconds: f64,
+    pub average_travel_seconds: f64,
+    #[serde(default)]
+    pub minimum_response_seconds: Option<u64>,
+    #[serde(default)]
+    pub maximum_response_seconds: Option<u64>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsResponseTime {
+    pub source: NycEmsSource,
+    pub query_custody: Vec<NycEmsQueryCustody>,
+    pub dataset_rows_at_capture: u64,
+    pub dataset_min_incident_datetime: String,
+    pub dataset_max_incident_datetime: String,
+    pub year: u64,
+    pub calendar_year_incidents: u64,
+    pub valid_response_time_events: u64,
+    pub invalid_response_time_events: u64,
+    pub valid_response_time_bps: u64,
+    pub borough_aggregates: BTreeMap<String, NycEmsTimingAggregate>,
+    pub severity_aggregates: BTreeMap<String, NycEmsTimingAggregate>,
+    pub severity_one_borough_aggregates: BTreeMap<String, NycEmsTimingAggregate>,
+    pub response_definition: String,
+    pub travel_definition: String,
+    pub call_type_is_actual_patient_condition: bool,
+    pub specific_incident_location_published: bool,
+    pub incident_rows_stored_in_repository: bool,
+    pub scene_to_hospital_transport_time_assessed: bool,
+    pub population_denominator_joined: bool,
+    pub outcome_or_adequacy_ready: bool,
+    pub nationally_representative: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl NycEmsResponseTime {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let borough_sum: u64 = self.borough_aggregates.values().map(|row| row.events).sum();
+        let severity_sum: u64 = self
+            .severity_aggregates
+            .values()
+            .map(|row| row.events)
+            .sum();
+        let severity_one_sum: u64 = self
+            .severity_one_borough_aggregates
+            .values()
+            .map(|row| row.events)
+            .sum();
+        let rounded_bps = (self.valid_response_time_events * 10_000
+            + self.calendar_year_incidents / 2)
+            / self.calendar_year_incidents;
+        if self.calendar_year_incidents
+            != self.valid_response_time_events + self.invalid_response_time_events
+            || borough_sum != self.valid_response_time_events
+            || severity_sum != self.valid_response_time_events
+            || severity_one_sum != self.severity_aggregates["1"].events
+            || rounded_bps != self.valid_response_time_bps
+            || self.query_custody.len() != 5
+            || self
+                .query_custody
+                .iter()
+                .any(|query| query.response_bytes == 0 || query.response_sha256.len() != 64)
+            || self.source.data_dictionary_bytes == 0
+            || self.source.data_dictionary_sha256.len() != 64
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS response-time aggregates do not reconcile".to_string(),
+            ));
+        }
+        if self.call_type_is_actual_patient_condition
+            || self.specific_incident_location_published
+            || self.incident_rows_stored_in_repository
+            || self.scene_to_hospital_transport_time_assessed
+            || self.population_denominator_joined
+            || self.outcome_or_adequacy_ready
+            || self.nationally_representative
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS response-time claim boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_response_time_fixture() -> Result<NycEmsResponseTime, AccessError> {
+    let result: NycEmsResponseTime = serde_json::from_str(NYC_EMS_RESPONSE_TIME_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_response_time_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_response_time_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-response-time.v1",
+        "source":result.source,
+        "query_custody":result.query_custody,
+        "identity":{"year":result.year,"calendar_year_incidents":result.calendar_year_incidents,"valid_response_time_events":result.valid_response_time_events,"invalid_response_time_events":result.invalid_response_time_events,"valid_response_time_bps":result.valid_response_time_bps},
+        "borough":result.borough_aggregates,
+        "severity":result.severity_aggregates,
+        "severity_one_borough":result.severity_one_borough_aggregates,
+        "definitions":{"response":result.response_definition,"travel":result.travel_definition},
+        "interpretation":{"allowed":"calendar 2025 FDNY EMS dispatch-record counts and arithmetic-mean response-to-scene and assignment-to-scene seconds by borough and dispatch severity after the source valid-response flag","boundary":"specific incident locations are excluded by NYC for privacy; call type and severity support dispatch and resource allocation and do not establish the patient's actual condition; arithmetic means retain valid-record extremes.","held":"patient-level inference, scene-to-hospital travel, destination, population rates, causal explanation, SLA compliance, outcomes, adequacy, national generalization, candidates, effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_response_time_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_response_time_fixture()?;
+    let severity_one = &result.severity_aggregates["1"];
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-response-time-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"New York City with borough-level aggregates","population_or_network":"FDNY EMS computer-aided dispatch incidents","ownership":"Fire Department of New York City","time_basis":"complete calendar 2025 incidents in the July 15, 2026 dataset state","unit_basis":"EMS dispatch incidents and arithmetic-mean seconds among records flagged valid for incident response time","included":"validity residual, response-to-scene, assignment-to-scene, borough, and final dispatch-severity aggregates","excluded":"specific incident locations, stored incident rows, actual patient condition, scene-to-hospital transport, destination, population denominator, outcomes, SLA compliance, adequacy, candidates, effects, and costs"},
+        "source_custody":{"source_id":"NYC-FDNY-EMS-DISPATCH-2025","publisher":result.source.publisher,"source_path_or_url":result.source.landing_page,"vintage":"calendar 2025 / dataset updated 2026-07-15","capture_status":"official API aggregate fixture with five exact query-response hashes, official dictionary custody, denominator reconciliation, and privacy boundaries","checksum_or_null":result.source.data_dictionary_sha256},
+        "problem":{"baseline_metric":"arithmetic-mean seconds from incident creation to first unit on scene among valid-response-time records","baseline_value_or_null":severity_one.average_response_seconds,"affected_population_or_exposure_or_null":result.valid_response_time_events,"problem_boundary":"severity-one mean response time is operational context, not a target exceedance, outcome effect, population access rate, or unmet-need estimate","calendar_year_incidents":result.calendar_year_incidents,"valid_response_time_bps":result.valid_response_time_bps,"severity_one_events":severity_one.events,"severity_one_borough":result.severity_one_borough_aggregates},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no dispatch, posting, staffing, fleet, routing, hospital, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"invalid records, arithmetic-mean sensitivity, zero and long valid values, priority and call-type mix, traffic, weather, held incidents, unit type, concurrent demand, destination, patient condition, and outcomes remain unresolved","transferability_boundary":"NYC dispatch operations do not establish other jurisdictions, national access, or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"NYC dispatch-record operational context only","netting_rule":"dispatch response-time aggregates cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"local EMS response observation only","peer_goal_basis":null,"evaluation_horizons":"annual NYC OpenData refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"borough and severity means can conceal distribution tails and compositional differences; faster response alone does not prove outcomes or adequate access","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add incidents to NEMSIS activations, CMS ED visits, inpatient cases, or unique-patient counts","observation_cadence":"annual FDNY dataset update","reopen_triggers":"distributional percentiles and population denominators plus targets, current operations, outcomes, candidate design, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on FDNY EMS dispatch dataset update"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"TRN RUR","non_additivity_rule":"EMS dispatch observations are shared HLT/TRN context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"actual_response_to_scene_ready":true,"substate_borough_aggregate_ready":true,"dispatch_severity_aggregate_ready":true,"specific_location_ready":result.specific_incident_location_published,"scene_to_hospital_time_ready":result.scene_to_hospital_transport_time_assessed,"population_rate_ready":result.population_denominator_joined,"outcome_ready":result.outcome_or_adequacy_ready,"adequacy_ready":result.outcome_or_adequacy_ready,"national_inference_ready":result.nationally_representative,"candidate_bounded":result.candidate_ready,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"borough_response_observation_allowed":true,"patient_condition_claim_allowed":false,"scene_to_hospital_claim_allowed":false,"sla_or_adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2625,6 +2787,44 @@ mod tests {
         );
         assert_eq!(output["readiness"]["county_access_ready"], false);
         assert_eq!(output["readiness"]["need_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_response_time_reconciles_validity_and_partitions() {
+        let result = load_nyc_ems_response_time_fixture().unwrap();
+        assert_eq!(result.calendar_year_incidents, 1_612_273);
+        assert_eq!(result.valid_response_time_events, 1_510_191);
+        assert_eq!(result.invalid_response_time_events, 102_082);
+        assert_eq!(result.valid_response_time_bps, 9_367);
+        assert_eq!(result.severity_aggregates["1"].events, 27_540);
+        assert_eq!(result.borough_aggregates["UNKNOWN"].events, 3);
+    }
+
+    #[test]
+    fn nyc_ems_response_time_preserves_operational_definitions() {
+        let result = load_nyc_ems_response_time_fixture().unwrap();
+        assert!(result.response_definition.contains("incident creation"));
+        assert!(result.response_definition.contains("first unit on scene"));
+        assert!(result.travel_definition.contains("first unit assignment"));
+        assert!(!result.call_type_is_actual_patient_condition);
+        assert!(!result.specific_incident_location_published);
+        assert!(!result.incident_rows_stored_in_repository);
+    }
+
+    #[test]
+    fn nyc_ems_response_time_pack_holds_adequacy_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nyc_ems_response_time_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["actual_response_to_scene_ready"], true);
+        assert_eq!(
+            output["readiness"]["substate_borough_aggregate_ready"],
+            true
+        );
+        assert_eq!(output["readiness"]["scene_to_hospital_time_ready"], false);
+        assert_eq!(output["readiness"]["adequacy_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }

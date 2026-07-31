@@ -55,6 +55,10 @@ where infrastructure methods do not transfer cleanly.
   hospitals, 97% of residents within a modeled 30-minute drive, and 99% within
   60 minutes, while separating modeled statewide coverage from actual EMS
   trips, county results, national inference, need, and adequacy.
+- A calendar-2025 FDNY EMS dispatch timing baseline covering 1,612,273 NYC
+  incidents and 1,510,191 valid response-time events, with severity-1 means by
+  borough and exact API-query custody, while holding patient condition,
+  percentiles, targets, outcomes, causal, adequacy, and national claims.
 
 ## Next work
 
@@ -62,10 +66,11 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add machine-readable substate emergency access coverage or publicly usable
-   patient flow linking incident origins to service locations.
-2. Add total-population demand and current emergency operations before testing
-   a specific access or delivery intervention.
+1. Add response-time percentiles, an accepted service target, compatible
+   population denominators, and outcome evidence before testing an NYC access
+   or delivery intervention.
+2. Add machine-readable substate emergency access coverage or publicly usable
+   patient flow linking incident origins to service locations elsewhere.
 3. Keep county class, formal shortage designation, facility presence, available
    bed use, staffed
    service availability, and patient-relevant travel access distinct.

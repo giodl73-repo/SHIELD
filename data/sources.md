@@ -261,3 +261,25 @@ statewide modeled population-coverage shares. They are not observed EMS trips,
 patient origin-destination records, county estimates, a machine-readable
 geographic surface, or national access estimates. The source does not publish
 an exact uncovered population count in this summary.
+
+## NYC-FDNY-EMS-DISPATCH-2025
+
+- Publisher: Fire Department of New York City
+- Dataset: EMS Incident Dispatch Data (`76xm-jjuj`)
+- Landing page: <https://data.cityofnewyork.us/d/76xm-jjuj>
+- API endpoint: <https://data.cityofnewyork.us/resource/76xm-jjuj.json>
+- Rows updated / captured: 2026-07-15 / 2026-07-31
+- Dataset rows at capture / incident range: 29,978,154 / 2005-01-01 through 2026-06-30
+- Data dictionary bytes / SHA-256: 22,388 / `ccf797381643e39ebcd652892c730ab180bd751bedd9519b4cd9afc0e374a9de`
+- Exact query-response SHA-256 values: snapshot `319e7f94b6a7efdb88a600d143f426915f332cc95497a266d821b29a7414eadf`; validity `a0338bc1c0a5ff4634fc15fa5e40a67a482110ace057350ef01bdc305df06aa7`; borough `1ba1c7912603c3f87a535545006b87851a10cec046e335e46018a22a2c2611dd`; severity `11f6674636f24ed419945624feb1023b607b3bc351fe1fda665d02ca8405b361`; severity-1 borough `e560a8ef184d5825b621a80baad8f14ff0e077835d88905a862ad3bf34e37296`
+- Derived fixture: `data/derived/nyc-ems-response-time-2025.json`
+
+Calendar 2025 contains 1,612,273 incidents; 1,510,191 have a valid response
+time (93.67%). The 27,540 severity-1 valid events have a 421.713-second mean
+response time and 372.592-second mean travel time. Response runs from incident
+creation to first unit on scene; travel runs from first-unit assignment to
+first unit on scene. Call type and dispatch severity do not establish the
+patient's actual condition. Specific locations are removed, and SHIELD stores
+no incident rows. Arithmetic means do not establish tails or targets; the
+source does not establish scene-to-hospital time, outcomes, population rates,
+causes, adequacy, candidates, costs, or savings.

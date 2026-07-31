@@ -1,0 +1,106 @@
+{
+  "source": {
+    "publisher": "Fire Department of New York City",
+    "portal": "NYC OpenData",
+    "dataset_title": "EMS Incident Dispatch Data",
+    "dataset_id": "76xm-jjuj",
+    "landing_page": "https://data.cityofnewyork.us/d/76xm-jjuj",
+    "api_endpoint": "https://data.cityofnewyork.us/resource/76xm-jjuj.json",
+    "rows_updated": "2026-07-15T20:06:55Z",
+    "captured": "2026-07-31",
+    "data_dictionary_filename": "EMS_incident_dispatch_data_description.xlsx",
+    "data_dictionary_bytes": 22388,
+    "data_dictionary_sha256": "ccf797381643e39ebcd652892c730ab180bd751bedd9519b4cd9afc0e374a9de"
+  },
+  "query_custody": [
+    {
+      "label": "dataset_snapshot",
+      "select": "min(incident_datetime) as min_date,max(incident_datetime) as max_date,count(*) as rows",
+      "where_clause": null,
+      "group_by": null,
+      "order_by": null,
+      "response_bytes": 96,
+      "response_sha256": "319e7f94b6a7efdb88a600d143f426915f332cc95497a266d821b29a7414eadf"
+    },
+    {
+      "label": "cy2025_validity",
+      "select": "valid_incident_rspns_time_indc,count(*) as total",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59'",
+      "group_by": "valid_incident_rspns_time_indc",
+      "order_by": "valid_incident_rspns_time_indc",
+      "response_bytes": 116,
+      "response_sha256": "a0338bc1c0a5ff4634fc15fa5e40a67a482110ace057350ef01bdc305df06aa7"
+    },
+    {
+      "label": "cy2025_valid_borough",
+      "select": "borough,count(*) as valid_events,avg(incident_response_seconds_qy) as avg_response_seconds,avg(incident_travel_tm_seconds_qy) as avg_travel_seconds,min(incident_response_seconds_qy) as min_response_seconds,max(incident_response_seconds_qy) as max_response_seconds",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59' and valid_incident_rspns_time_indc='Y'",
+      "group_by": "borough",
+      "order_by": "borough",
+      "response_bytes": 1180,
+      "response_sha256": "1ba1c7912603c3f87a535545006b87851a10cec046e335e46018a22a2c2611dd"
+    },
+    {
+      "label": "cy2025_valid_severity",
+      "select": "final_severity_level_code,count(*) as valid_events,avg(incident_response_seconds_qy) as avg_response_seconds,avg(incident_travel_tm_seconds_qy) as avg_travel_seconds",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59' and valid_incident_rspns_time_indc='Y'",
+      "group_by": "final_severity_level_code",
+      "order_by": "final_severity_level_code",
+      "response_bytes": 1194,
+      "response_sha256": "11f6674636f24ed419945624feb1023b607b3bc351fe1fda665d02ca8405b361"
+    },
+    {
+      "label": "cy2025_valid_severity1_borough",
+      "select": "borough,count(*) as valid_events,avg(incident_response_seconds_qy) as avg_response_seconds,avg(incident_travel_tm_seconds_qy) as avg_travel_seconds",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59' and valid_incident_rspns_time_indc='Y' and final_severity_level_code='1'",
+      "group_by": "borough",
+      "order_by": "borough",
+      "response_bytes": 693,
+      "response_sha256": "e560a8ef184d5825b621a80baad8f14ff0e077835d88905a862ad3bf34e37296"
+    }
+  ],
+  "dataset_rows_at_capture": 29978154,
+  "dataset_min_incident_datetime": "2005-01-01T00:00:24",
+  "dataset_max_incident_datetime": "2026-06-30T23:59:34",
+  "year": 2025,
+  "calendar_year_incidents": 1612273,
+  "valid_response_time_events": 1510191,
+  "invalid_response_time_events": 102082,
+  "valid_response_time_bps": 9367,
+  "borough_aggregates": {
+    "BRONX": {"events": 351433, "average_response_seconds": 1250.274, "average_travel_seconds": 705.062, "minimum_response_seconds": 0, "maximum_response_seconds": 32343},
+    "BROOKLYN": {"events": 427714, "average_response_seconds": 778.495, "average_travel_seconds": 618.019, "minimum_response_seconds": 0, "maximum_response_seconds": 32019},
+    "MANHATTAN": {"events": 351141, "average_response_seconds": 1093.685, "average_travel_seconds": 649.309, "minimum_response_seconds": 0, "maximum_response_seconds": 32322},
+    "QUEENS": {"events": 312721, "average_response_seconds": 852.355, "average_travel_seconds": 661.645, "minimum_response_seconds": 0, "maximum_response_seconds": 32346},
+    "RICHMOND / STATEN ISLAND": {"events": 67179, "average_response_seconds": 632.822, "average_travel_seconds": 544.391, "minimum_response_seconds": 0, "maximum_response_seconds": 32254},
+    "UNKNOWN": {"events": 3, "average_response_seconds": 64.0, "average_travel_seconds": 54.667, "minimum_response_seconds": 0, "maximum_response_seconds": 192}
+  },
+  "severity_aggregates": {
+    "1": {"events": 27540, "average_response_seconds": 421.713, "average_travel_seconds": 372.592},
+    "2": {"events": 334919, "average_response_seconds": 552.062, "average_travel_seconds": 475.399},
+    "3": {"events": 240577, "average_response_seconds": 598.335, "average_travel_seconds": 491.626},
+    "4": {"events": 182956, "average_response_seconds": 990.191, "average_travel_seconds": 728.988},
+    "5": {"events": 374769, "average_response_seconds": 1142.380, "average_travel_seconds": 720.047},
+    "6": {"events": 198001, "average_response_seconds": 1273.697, "average_travel_seconds": 732.307},
+    "7": {"events": 148022, "average_response_seconds": 1675.105, "average_travel_seconds": 983.268},
+    "8": {"events": 3407, "average_response_seconds": 4569.689, "average_travel_seconds": 609.585}
+  },
+  "severity_one_borough_aggregates": {
+    "BRONX": {"events": 5851, "average_response_seconds": 456.609, "average_travel_seconds": 387.327},
+    "BROOKLYN": {"events": 8096, "average_response_seconds": 388.215, "average_travel_seconds": 352.542},
+    "MANHATTAN": {"events": 5713, "average_response_seconds": 412.491, "average_travel_seconds": 349.131},
+    "QUEENS": {"events": 6374, "average_response_seconds": 445.420, "average_travel_seconds": 405.050},
+    "RICHMOND / STATEN ISLAND": {"events": 1506, "average_response_seconds": 400.863, "average_travel_seconds": 374.757}
+  },
+  "response_definition": "seconds from incident creation to first unit on scene",
+  "travel_definition": "seconds from first unit assignment to first unit on scene",
+  "call_type_is_actual_patient_condition": false,
+  "specific_incident_location_published": false,
+  "incident_rows_stored_in_repository": false,
+  "scene_to_hospital_transport_time_assessed": false,
+  "population_denominator_joined": false,
+  "outcome_or_adequacy_ready": false,
+  "nationally_representative": false,
+  "candidate_ready": false,
+  "taxlane_admission_ready": false
+}

@@ -327,6 +327,27 @@ national estimate. The published summary does not enumerate the uncovered
 population or establish service readiness, unmet need, adequacy, candidates,
 costs, or savings.
 
+### Local EMS response-time context
+
+FDNY's NYC OpenData dispatch file supplies a current local operational timing
+surface for calendar 2025. SHIELD stores only exact aggregate query results,
+not incident rows:
+
+| NYC EMS result | Count or value |
+|---|---:|
+| Incidents / valid response-time events | 1,612,273 / 1,510,191 (93.67%) |
+| Severity-1 valid events | 27,540 |
+| Severity-1 mean response / travel time | 421.713 / 372.592 seconds |
+| Severity-1 borough mean-response range | 388.215–456.609 seconds |
+
+Response time runs from incident creation to the first unit on scene; travel
+time runs from first-unit assignment to first unit on scene. The severity code
+reflects information available to dispatch, not the patient's actual condition.
+These are arithmetic means, and the source does not supply an accepted target,
+percentiles, scene-to-hospital time, outcomes, population denominators, or a
+causal explanation for borough differences. The result therefore does not
+establish adequacy, inequity, a candidate intervention, cost, or savings.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -352,7 +373,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -380,6 +401,8 @@ cargo run -p shield-cli -- cms-emergency-care-timeliness-baseline
 cargo run -p shield-cli -- cms-emergency-care-timeliness-held-pack
 cargo run -p shield-cli -- cms-county-emergency-demand-baseline
 cargo run -p shield-cli -- cms-county-emergency-demand-held-pack
+cargo run -p shield-cli -- nyc-ems-response-time-baseline
+cargo run -p shield-cli -- nyc-ems-response-time-held-pack
 cargo test --workspace
 ```
 
