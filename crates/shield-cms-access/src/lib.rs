@@ -11,6 +11,8 @@ const HRSA_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-hpsa-census-2026-07-31.json");
 const HRSA_GEOGRAPHY_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-geography-bridge-2026-07-31.json");
+const HRSA_CAPACITY_FIXTURE: &str =
+    include_str!("../../../data/derived/hrsa-primary-care-designation-capacity-2026-07-31.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -699,6 +701,201 @@ pub fn hrsa_geography_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct HrsaPrimaryCareDesignationCapacity {
+    pub csv_download_url: String,
+    pub csv_created: String,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub metadata_url: String,
+    pub metadata_bytes: u64,
+    pub metadata_sha256: String,
+    pub designated_hpsa_ids: u64,
+    pub capacity_bearing_designation_ids: u64,
+    pub area_capacity_designation_ids: u64,
+    pub correctional_capacity_designation_ids: u64,
+    pub capacity_excluded_designation_ids: u64,
+    pub capacity_excluded_type_counts: BTreeMap<String, u64>,
+    pub fte_present_designation_ids: u64,
+    pub fte_zero_designation_ids: u64,
+    pub fte_positive_designation_ids: u64,
+    pub shortage_present_designation_ids: u64,
+    pub shortage_zero_designation_ids: u64,
+    pub shortage_positive_designation_ids: u64,
+    pub designation_recorded_fte_e4: u64,
+    pub designation_recorded_shortage_e4: u64,
+    pub designation_recorded_need_met_bps: u64,
+    pub area_recorded_fte_e4: u64,
+    pub area_recorded_shortage_e4: u64,
+    pub area_need_met_bps: u64,
+    pub area_designation_population: u64,
+    pub area_estimated_served_population: u64,
+    pub area_estimated_underserved_population: u64,
+    pub area_population_identity_exact_ids: u64,
+    pub area_population_identity_residual_ids: u64,
+    pub area_population_identity_residual_people: i64,
+    pub area_served_formula_within_half_person_ids: u64,
+    pub area_shortage_formula_within_one_hundredth_fte_ids: u64,
+    pub correctional_recorded_fte_e4: u64,
+    pub correctional_recorded_shortage_e4: u64,
+    pub correctional_need_met_bps: u64,
+    pub correctional_designation_population: u64,
+    pub provider_ratio_goal_counts: BTreeMap<String, u64>,
+    pub capacity_excluded_population_present_ids: u64,
+    pub capacity_excluded_population_missing_ids: u64,
+    pub unique_physician_supply_ready: bool,
+    pub nurse_practitioner_and_physician_assistant_supply_included: bool,
+    pub cms_facility_capacity_ready: bool,
+    pub patient_access_ready: bool,
+}
+
+fn rounded_need_met_bps(fte_e4: u64, shortage_e4: u64) -> u64 {
+    let denominator = fte_e4 + shortage_e4;
+    (fte_e4 * 10_000 + denominator / 2) / denominator
+}
+
+impl HrsaPrimaryCareDesignationCapacity {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let census = load_hrsa_primary_care_fixture()?;
+        if self.designated_hpsa_ids != census.status_counts["Designated"].unique_designations
+            || self.csv_sha256 != census.csv_sha256
+        {
+            return Err(AccessError::Invariant(
+                "capacity baseline does not match the same-vintage registry census".to_string(),
+            ));
+        }
+        if self.capacity_bearing_designation_ids + self.capacity_excluded_designation_ids
+            != self.designated_hpsa_ids
+            || self.area_capacity_designation_ids + self.correctional_capacity_designation_ids
+                != self.capacity_bearing_designation_ids
+            || self.capacity_excluded_type_counts.values().sum::<u64>()
+                != self.capacity_excluded_designation_ids
+        {
+            return Err(AccessError::Invariant(
+                "capacity-bearing and excluded partitions do not reconcile".to_string(),
+            ));
+        }
+        if self.fte_present_designation_ids != self.capacity_bearing_designation_ids
+            || self.fte_zero_designation_ids + self.fte_positive_designation_ids
+                != self.capacity_bearing_designation_ids
+            || self.shortage_present_designation_ids != self.capacity_bearing_designation_ids
+            || self.shortage_zero_designation_ids + self.shortage_positive_designation_ids
+                != self.capacity_bearing_designation_ids
+            || self.provider_ratio_goal_counts.values().sum::<u64>()
+                != self.capacity_bearing_designation_ids
+        {
+            return Err(AccessError::Invariant(
+                "capacity field-presence partitions do not reconcile".to_string(),
+            ));
+        }
+        if self.area_recorded_fte_e4 + self.correctional_recorded_fte_e4
+            != self.designation_recorded_fte_e4
+            || self.area_recorded_shortage_e4 + self.correctional_recorded_shortage_e4
+                != self.designation_recorded_shortage_e4
+        {
+            return Err(AccessError::Invariant(
+                "area and correctional capacity quantities do not reconcile".to_string(),
+            ));
+        }
+        for (label, actual, expected) in [
+            (
+                "all designation-recorded",
+                self.designation_recorded_need_met_bps,
+                rounded_need_met_bps(
+                    self.designation_recorded_fte_e4,
+                    self.designation_recorded_shortage_e4,
+                ),
+            ),
+            (
+                "area",
+                self.area_need_met_bps,
+                rounded_need_met_bps(self.area_recorded_fte_e4, self.area_recorded_shortage_e4),
+            ),
+            (
+                "correctional",
+                self.correctional_need_met_bps,
+                rounded_need_met_bps(
+                    self.correctional_recorded_fte_e4,
+                    self.correctional_recorded_shortage_e4,
+                ),
+            ),
+        ] {
+            if actual != expected {
+                return Err(AccessError::Invariant(format!(
+                    "{label} need-met basis points are {actual}, expected {expected}"
+                )));
+            }
+        }
+        if self.area_population_identity_exact_ids + self.area_population_identity_residual_ids
+            != self.area_capacity_designation_ids
+            || self.area_designation_population as i64
+                - self.area_estimated_served_population as i64
+                - self.area_estimated_underserved_population as i64
+                != self.area_population_identity_residual_people
+            || self.area_served_formula_within_half_person_ids != self.area_capacity_designation_ids
+            || self.area_shortage_formula_within_one_hundredth_fte_ids
+                != self.area_capacity_designation_ids
+        {
+            return Err(AccessError::Invariant(
+                "area population or formula checks do not reconcile".to_string(),
+            ));
+        }
+        if self.capacity_excluded_population_present_ids
+            + self.capacity_excluded_population_missing_ids
+            != self.capacity_excluded_designation_ids
+            || self.unique_physician_supply_ready
+            || self.nurse_practitioner_and_physician_assistant_supply_included
+            || self.cms_facility_capacity_ready
+            || self.patient_access_ready
+        {
+            return Err(AccessError::Invariant(
+                "capacity baseline must retain workforce and access boundaries".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_hrsa_capacity_fixture() -> Result<HrsaPrimaryCareDesignationCapacity, AccessError> {
+    let result: HrsaPrimaryCareDesignationCapacity = serde_json::from_str(HRSA_CAPACITY_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn hrsa_capacity_baseline_json() -> Result<String, AccessError> {
+    let result = load_hrsa_capacity_fixture()?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "schema":"shield.hrsa-primary-care-designation-capacity.v1",
+        "source":{"url":result.csv_download_url,"created":result.csv_created,"bytes":result.csv_bytes,"sha256":result.csv_sha256,"metadata_url":result.metadata_url,"metadata_bytes":result.metadata_bytes,"metadata_sha256":result.metadata_sha256},
+        "coverage":{"designated_hpsa_ids":result.designated_hpsa_ids,"capacity_bearing_ids":result.capacity_bearing_designation_ids,"area_ids":result.area_capacity_designation_ids,"correctional_ids":result.correctional_capacity_designation_ids,"capacity_excluded_ids":result.capacity_excluded_designation_ids,"capacity_excluded_type_counts":result.capacity_excluded_type_counts},
+        "designation_recorded_capacity":{"fte_e4":result.designation_recorded_fte_e4,"shortage_e4":result.designation_recorded_shortage_e4,"derived_need_met_bps":result.designation_recorded_need_met_bps,"fte_zero_ids":result.fte_zero_designation_ids,"fte_positive_ids":result.fte_positive_designation_ids,"shortage_zero_ids":result.shortage_zero_designation_ids,"shortage_positive_ids":result.shortage_positive_designation_ids,"provider_ratio_goal_counts":result.provider_ratio_goal_counts},
+        "area_formula":{"fte_e4":result.area_recorded_fte_e4,"shortage_e4":result.area_recorded_shortage_e4,"derived_need_met_bps":result.area_need_met_bps,"designation_population":result.area_designation_population,"estimated_served_population":result.area_estimated_served_population,"estimated_underserved_population":result.area_estimated_underserved_population,"population_identity_exact_ids":result.area_population_identity_exact_ids,"population_identity_residual_ids":result.area_population_identity_residual_ids,"population_identity_residual_people":result.area_population_identity_residual_people},
+        "correctional_formula":{"fte_e4":result.correctional_recorded_fte_e4,"shortage_e4":result.correctional_recorded_shortage_e4,"derived_need_met_bps":result.correctional_need_met_bps,"designation_population":result.correctional_designation_population},
+        "interpretation":{"allowed":"designation-recorded primary-care physician FTE, shortage, provider-ratio, population-formula coverage, and explicit policy exclusions at current HPSA-ID grain","boundary":"quantities are designation-formula values, not deduplicated physicians, people, counties, facilities, or service-line capacity; nurse practitioners and physician assistants are excluded.","held":"unique workforce supply or need, CMS hospital capacity, patient access, adequacy, candidate effects, costs, and savings"}
+    }))?)
+}
+
+pub fn hrsa_capacity_held_pack_json() -> Result<String, AccessError> {
+    let result = load_hrsa_capacity_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:hrsa-primary-care-designation-capacity-2026-07-31:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"current HRSA primary-care HPSA designations","population_or_network":"area and correctional designations with recorded primary-care physician FTE/shortage formulas","ownership":"HRSA Bureau of Health Workforce designation system","time_basis":"daily CSV created 2026-07-31","unit_basis":"unique HPSA IDs and designation-recorded physician FTE ten-thousandths","included":"formula coverage, recorded FTE and shortage, provider-ratio goals, population identities, and exclusions","excluded":"deduplicated workforce or population, NP/PA supply, CMS hospital capacity, access, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":"HRSA-BCD_HPSA_FCT_DET_PC-2026-07-31 + HPSA-DATAMART-METADATA","publisher":"Health Resources and Services Administration","source_path_or_url":result.csv_download_url,"vintage":result.csv_created,"capture_status":"derived aggregate with same-vintage identity, field-presence, formula, and exclusion invariants","checksum_or_null":result.csv_sha256,"metadata_checksum":result.metadata_sha256},
+        "problem":{"baseline_metric":"designation-recorded primary-care physician capacity and shortage formula","baseline_value_or_null":result.designation_recorded_shortage_e4,"affected_population_or_exposure_or_null":null,"problem_boundary":"FTE and shortage sums are designation-recorded quantities and may overlap; they are not unique national physicians or people","capacity_bearing_ids":result.capacity_bearing_designation_ids,"capacity_excluded_ids":result.capacity_excluded_designation_ids,"recorded_fte_e4":result.designation_recorded_fte_e4,"recorded_shortage_e4":result.designation_recorded_shortage_e4,"derived_need_met_bps":result.designation_recorded_need_met_bps,"area_population_rounding_residual_people":result.area_population_identity_residual_people},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no HPSA, workforce, facility, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"overlapping designations, excluded automatic facilities, NP/PA omission, facility identity, service breadth, and patient access remain unresolved","transferability_boundary":"designation-formula physician FTE does not establish staffed hospital services, appointment availability, quality, or outcomes"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"hospital_level_shortage":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"designation-recorded FTE and shortage cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"designation-formula capacity baseline only","peer_goal_basis":null,"evaluation_horizons":"daily source refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"formula coverage is incomplete and non-deduplicated and excludes NP/PA services","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add overlapping designation populations or treat designation-recorded FTE as unique workforce","observation_cadence":"daily source refresh","reopen_triggers":"compatible provider/site identity or staffed-service source plus bounded candidate, access, outcome, cost, incidence, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on HRSA registry release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR ISF VET DEF","non_additivity_rule":"designation-formula capacity is shared context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"provider_capacity_formula_ready":true,"unique_physician_supply_ready":result.unique_physician_supply_ready,"cms_facility_capacity_ready":result.cms_facility_capacity_ready,"candidate_bounded":false,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"unique_workforce_or_hospital_capacity_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -891,6 +1088,51 @@ mod tests {
         assert_eq!(output["readiness"]["geography_bridge_ready"], true);
         assert_eq!(output["readiness"]["cms_facility_join_ready"], false);
         assert_eq!(output["service_floors"]["access"], serde_json::Value::Null);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn hrsa_capacity_partitions_formula_coverage_and_exclusions() {
+        let result = load_hrsa_capacity_fixture().unwrap();
+        assert_eq!(result.capacity_bearing_designation_ids, 3_388);
+        assert_eq!(result.area_capacity_designation_ids, 2_838);
+        assert_eq!(result.correctional_capacity_designation_ids, 550);
+        assert_eq!(result.capacity_excluded_designation_ids, 4_294);
+    }
+
+    #[test]
+    fn hrsa_capacity_reconciles_fte_shortage_and_need_met() {
+        let result = load_hrsa_capacity_fixture().unwrap();
+        assert_eq!(result.designation_recorded_fte_e4, 106_354_884);
+        assert_eq!(result.designation_recorded_shortage_e4, 122_670_916);
+        assert_eq!(result.designation_recorded_need_met_bps, 4_644);
+        assert_eq!(result.fte_zero_designation_ids, 805);
+    }
+
+    #[test]
+    fn hrsa_area_capacity_formula_keeps_rounding_residual_visible() {
+        let result = load_hrsa_capacity_fixture().unwrap();
+        assert_eq!(result.area_population_identity_exact_ids, 2_837);
+        assert_eq!(result.area_population_identity_residual_ids, 1);
+        assert_eq!(result.area_population_identity_residual_people, -1);
+        assert_eq!(
+            result.area_shortage_formula_within_one_hundredth_fte_ids,
+            2_838
+        );
+    }
+
+    #[test]
+    fn hrsa_capacity_pack_does_not_claim_unique_workforce_or_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&hrsa_capacity_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["provider_capacity_formula_ready"], true);
+        assert_eq!(output["readiness"]["unique_physician_supply_ready"], false);
+        assert_eq!(
+            output["service_floors"]["staffed_capacity"],
+            serde_json::Value::Null
+        );
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
     }

@@ -25,6 +25,9 @@ where infrastructure methods do not transfer cleanly.
 - A same-vintage HRSA geography bridge separating 2,838 area designations from
   4,844 facility designations, preserving 762 multi-component and 155
   multi-county area designations, and exposing 18 invalid county-key residuals.
+- A same-vintage HRSA designation-formula capacity baseline covering 2,838 area
+  and 550 correctional designations, with exact FTE/shortage arithmetic and
+  4,294 policy-excluded facility designations kept distinct from zero.
 
 ## Next public work
 
@@ -33,8 +36,9 @@ Next:
 
 1. Build a compatible CMS/HRSA facility-identity bridge only if explicit source
    identifiers support it; never infer identity from county co-location.
-2. Add an official staffed service-line or provider-capacity source only where a compatible
-   geographic denominator and baseline/surge basis exist.
+2. Add an official provider/site identity or staffed service-line source only
+   where a compatible geographic denominator and baseline/surge basis exist;
+   do not relabel designation-formula physician FTE as hospital staffing.
 3. Keep county class, formal shortage designation, facility presence, staffed
    service availability, and patient-relevant travel access distinct.
 4. Test a specific HLT candidate against access, quality/safety, equity,

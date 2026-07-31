@@ -73,3 +73,21 @@ repair those rows from alternate fields. The derived fixture is
 The quarterly total is retained at its stated vintage. It is not reconciled to
 the newer daily CSV because the two sources have different dates and status
 surfaces.
+
+## HRSA-HPSA-METADATA-2026-07-31
+
+- Publisher: Health Resources and Services Administration (HRSA)
+- Dataset: HPSA Data Mart Metadata
+- Download: <https://data.hrsa.gov/DataDownload/DD_Files/HPSA_DATAMART_METADATA.XLSX>
+- Captured: 2026-07-31
+- Source XLSX bytes: 27,297
+- Source XLSX SHA-256: `0439dbf209f0b05745e99cc0911e49262b422c564282a48b9030a6175b7ab91b`
+- Derived fixture: `data/derived/hrsa-primary-care-designation-capacity-2026-07-31.json`
+
+The capacity baseline deduplicates component rows by HPSA ID and retains FTE,
+shortage, ratio-goal, and population-formula values only where HRSA supplies
+them. The quarterly report's endnotes define the primary-care need-met and
+practitioner-needed formulas, exclude specified facility classes, and state
+that nurse-practitioner and physician-assistant services are not included. The
+derived current-file aggregate is not reconciled to the different-vintage
+quarterly total and is not a unique workforce or population count.

@@ -137,6 +137,30 @@ to a CMS hospital, turn a tract or subdivision finding into whole-county
 shortage, deduplicate affected people, or establish access, staffed capacity,
 need, or adequacy.
 
+### Primary-care designation capacity formulas
+
+The same current registry identifies exactly where HRSA records primary-care
+physician FTE and shortage values:
+
+| Formula coverage | HPSA IDs | Recorded FTE | Recorded shortage | Derived need met |
+|---|---:|---:|---:|---:|
+| Area designations | 2,838 | 10,327.3034 | 11,498.4866 | 47.32% |
+| Correctional facilities | 550 | 308.1850 | 768.6050 | 28.62% |
+| **Capacity-bearing designations** | **3,388** | **10,635.4884** | **12,267.0916** | **46.44%** |
+
+All 2,838 area records reproduce the served-population formula within half a
+person and the shortage formula within 0.01 FTE. Their aggregate population
+identity has a visible one-person rounding residual. The remaining 4,294
+facility designations have no FTE or shortage value: 1,351 FQHCs, 171 FQHC
+Look-Alikes, 928 IHS/Tribal/Urban Indian organizations, nine Other Facilities,
+and 1,835 Rural Health Clinics.
+
+These are designation-recorded primary-care physician quantities, not
+deduplicated people or clinicians. HRSA's formula excludes nurse-practitioner
+and physician-assistant services and specified automatic or service-based
+facility designations. The result is therefore a valid formula baseline, not a
+CMS hospital staffing, appointment-access, service-line, or adequacy result.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -180,6 +204,8 @@ cargo run -p shield-cli -- hrsa-primary-care-baseline
 cargo run -p shield-cli -- hrsa-primary-care-held-pack
 cargo run -p shield-cli -- hrsa-geography-baseline
 cargo run -p shield-cli -- hrsa-geography-held-pack
+cargo run -p shield-cli -- hrsa-capacity-baseline
+cargo run -p shield-cli -- hrsa-capacity-held-pack
 cargo test --workspace
 ```
 

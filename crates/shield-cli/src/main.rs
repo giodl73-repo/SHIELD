@@ -26,6 +26,10 @@ enum Commands {
     HrsaGeographyBaseline,
     /// Emit the non-authoritative HRSA geography HLT pack.
     HrsaGeographyHeldPack,
+    /// Reproduce HRSA designation-recorded primary-care capacity formulas.
+    HrsaCapacityBaseline,
+    /// Emit the non-authoritative HRSA capacity-formula HLT pack.
+    HrsaCapacityHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -65,6 +69,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::HrsaGeographyHeldPack => {
             println!("{}", shield_cms_access::hrsa_geography_held_pack_json()?)
+        }
+        Commands::HrsaCapacityBaseline => {
+            println!("{}", shield_cms_access::hrsa_capacity_baseline_json()?)
+        }
+        Commands::HrsaCapacityHeldPack => {
+            println!("{}", shield_cms_access::hrsa_capacity_held_pack_json()?)
         }
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -133,5 +143,7 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "hrsa-primary-care-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "hrsa-geography-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "hrsa-geography-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "hrsa-capacity-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "hrsa-capacity-held-pack"]).is_ok());
     }
 }
