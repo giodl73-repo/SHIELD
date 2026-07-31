@@ -1,0 +1,53 @@
+{
+  "csv_download_url": "https://data.hrsa.gov/DataDownload/DD_Files/BCD_HPSA_FCT_DET_PC.csv",
+  "csv_created": "2026-07-31",
+  "csv_bytes": 48303351,
+  "csv_sha256": "8ed0007ef82194e44a1ee9086723e42f79e5effe96104cf3104648f2837d2673",
+  "csv_component_rows": 79150,
+  "status_counts": {
+    "Designated": {"component_rows": 20368, "unique_designations": 7682},
+    "Proposed For Withdrawal": {"component_rows": 9962, "unique_designations": 1014},
+    "Withdrawn": {"component_rows": 48820, "unique_designations": 8999}
+  },
+  "designated_type_counts": {
+    "Correctional Facility": 550,
+    "Federally Qualified Health Center": 1351,
+    "Federally Qualified Health Center Look A Like": 171,
+    "Geographic HPSA": 804,
+    "High Needs Geographic HPSA": 198,
+    "HPSA Population": 1836,
+    "Indian Health Service, Tribal Health, and Urban Indian Health Organizations": 928,
+    "Other Facility": 9,
+    "Rural Health Clinic": 1835
+  },
+  "designated_single_rural_status_counts": {
+    "Non-Rural": 2072,
+    "Partially Rural": 277,
+    "Rural": 5024,
+    "Unknown": 27
+  },
+  "designated_multi_rural_status_ids": 282,
+  "designated_single_component_ids": 6920,
+  "designated_multi_component_ids": 762,
+  "maximum_component_rows_per_designation": 177,
+  "designated_component_county_fips": 2935,
+  "quarterly_report_url": "https://data.hrsa.gov/Default/GenerateHPSAQuarterlyReport?stream=top",
+  "quarterly_report_bytes": 937344,
+  "quarterly_report_sha256": "e71178b1c88a6b00a8a4a28780ecbff1f75e39f490ea43a8e5c5c899e211f89c",
+  "quarterly_summary": {
+    "data_as_of": "2026-07-01",
+    "designations_as_of": "2026-06-30",
+    "total_designations": 9003,
+    "geographic_area_designations": 1496,
+    "population_group_designations": 2653,
+    "facility_designations": 4854,
+    "designated_population": 108566500,
+    "percent_need_met_bps": 4743,
+    "practitioners_needed": 18541,
+    "rural_designations": 5521,
+    "non_rural_designations": 2466,
+    "partially_rural_designations": 972,
+    "unknown_rurality_designations": 44
+  },
+  "cross_vintage_reconciliation_ready": false
+}

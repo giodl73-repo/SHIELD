@@ -18,6 +18,10 @@ enum Commands {
     CmsRuralityBaseline,
     /// Emit the non-authoritative rurality HLT pack for Taxlane review.
     CmsRuralityHeldPack,
+    /// Reproduce the bounded HRSA primary-care HPSA registry census.
+    HrsaPrimaryCareBaseline,
+    /// Emit the non-authoritative primary-care shortage HLT pack.
+    HrsaPrimaryCareHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -45,6 +49,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Commands::CmsRuralityHeldPack => {
             println!("{}", shield_cms_access::rurality_held_pack_json()?)
+        }
+        Commands::HrsaPrimaryCareBaseline => {
+            println!("{}", shield_cms_access::hrsa_primary_care_baseline_json()?)
+        }
+        Commands::HrsaPrimaryCareHeldPack => {
+            println!("{}", shield_cms_access::hrsa_primary_care_held_pack_json()?)
         }
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -109,5 +119,7 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "cms-access-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-rurality-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "cms-rurality-held-pack"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "hrsa-primary-care-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "hrsa-primary-care-held-pack"]).is_ok());
     }
 }

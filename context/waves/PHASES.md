@@ -10,11 +10,13 @@ Work is organized into small waves and pulses.
 | `2026-06-26-shield-implementation` | complete | WP-001..006 product baseline; repository state reverified 2026-07-31. |
 | `2026-07-31-cms-hospital-footprint` | complete | First current CMS aggregate result and held HLT handoff (WP-007). |
 | `2026-07-31-cms-usda-rurality` | complete | Exact county rurality join, visible residual, and held HLT handoff (WP-008). |
+| `2026-07-31-hrsa-primary-care-hpsa` | complete | Current primary-care HPSA registry census with separate quarterly benchmark and held HLT handoff (WP-009). |
 
 ## Active wave
 
-- No active wave. The next slice requires a compatible official shortage-area
-  or staffed-capacity source and a separately accepted work package.
+- No active wave. The next slice requires a same-vintage
+  designation-component-geography bridge or compatible official
+  staffed-capacity source and a separately accepted work package.
 
 ## Protocol
 

@@ -7,6 +7,8 @@ use thiserror::Error;
 const FIXTURE: &str = include_str!("../../../data/derived/cms-hospital-footprint-2026-05-13.json");
 const RURALITY_FIXTURE: &str =
     include_str!("../../../data/derived/cms-usda-rurality-join-2026-05-13.json");
+const HRSA_FIXTURE: &str =
+    include_str!("../../../data/derived/hrsa-primary-care-hpsa-census-2026-07-31.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -350,6 +352,176 @@ pub fn rurality_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RegistryStatusCount {
+    pub component_rows: u64,
+    pub unique_designations: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct QuarterlyHpsaSummary {
+    pub data_as_of: String,
+    pub designations_as_of: String,
+    pub total_designations: u64,
+    pub geographic_area_designations: u64,
+    pub population_group_designations: u64,
+    pub facility_designations: u64,
+    pub designated_population: u64,
+    pub percent_need_met_bps: u64,
+    pub practitioners_needed: u64,
+    pub rural_designations: u64,
+    pub non_rural_designations: u64,
+    pub partially_rural_designations: u64,
+    pub unknown_rurality_designations: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct HrsaPrimaryCareCensus {
+    pub csv_download_url: String,
+    pub csv_created: String,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub csv_component_rows: u64,
+    pub status_counts: BTreeMap<String, RegistryStatusCount>,
+    pub designated_type_counts: BTreeMap<String, u64>,
+    pub designated_single_rural_status_counts: BTreeMap<String, u64>,
+    pub designated_multi_rural_status_ids: u64,
+    pub designated_single_component_ids: u64,
+    pub designated_multi_component_ids: u64,
+    pub maximum_component_rows_per_designation: u64,
+    pub designated_component_county_fips: u64,
+    pub quarterly_report_url: String,
+    pub quarterly_report_bytes: u64,
+    pub quarterly_report_sha256: String,
+    pub quarterly_summary: QuarterlyHpsaSummary,
+    pub cross_vintage_reconciliation_ready: bool,
+}
+
+impl HrsaPrimaryCareCensus {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let status_rows: u64 = self
+            .status_counts
+            .values()
+            .map(|value| value.component_rows)
+            .sum();
+        if status_rows != self.csv_component_rows {
+            return Err(AccessError::Invariant(format!(
+                "HPSA status rows are {status_rows}, expected {}",
+                self.csv_component_rows
+            )));
+        }
+        let designated = self.status_counts["Designated"].unique_designations;
+        let type_total: u64 = self.designated_type_counts.values().sum();
+        if type_total != designated {
+            return Err(AccessError::Invariant(format!(
+                "designated type total is {type_total}, expected {designated}"
+            )));
+        }
+        let rural_total: u64 = self
+            .designated_single_rural_status_counts
+            .values()
+            .sum::<u64>()
+            + self.designated_multi_rural_status_ids;
+        if rural_total != designated {
+            return Err(AccessError::Invariant(format!(
+                "designated rural-status total is {rural_total}, expected {designated}"
+            )));
+        }
+        let component_total =
+            self.designated_single_component_ids + self.designated_multi_component_ids;
+        if component_total != designated {
+            return Err(AccessError::Invariant(format!(
+                "designation component total is {component_total}, expected {designated}"
+            )));
+        }
+        let quarterly = &self.quarterly_summary;
+        let quarterly_type_total = quarterly.geographic_area_designations
+            + quarterly.population_group_designations
+            + quarterly.facility_designations;
+        if quarterly_type_total != quarterly.total_designations {
+            return Err(AccessError::Invariant(format!(
+                "quarterly designation-type total is {quarterly_type_total}, expected {}",
+                quarterly.total_designations
+            )));
+        }
+        let quarterly_rural_total = quarterly.rural_designations
+            + quarterly.non_rural_designations
+            + quarterly.partially_rural_designations
+            + quarterly.unknown_rurality_designations;
+        if quarterly_rural_total != quarterly.total_designations {
+            return Err(AccessError::Invariant(format!(
+                "quarterly rurality total is {quarterly_rural_total}, expected {}",
+                quarterly.total_designations
+            )));
+        }
+        if self.cross_vintage_reconciliation_ready {
+            return Err(AccessError::Invariant(
+                "cross-vintage reconciliation must remain held".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_hrsa_primary_care_fixture() -> Result<HrsaPrimaryCareCensus, AccessError> {
+    let result: HrsaPrimaryCareCensus = serde_json::from_str(HRSA_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn hrsa_primary_care_baseline_json() -> Result<String, AccessError> {
+    let result = load_hrsa_primary_care_fixture()?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "schema":"shield.hrsa-primary-care-hpsa-census.v1",
+        "current_registry":{
+            "source_url":result.csv_download_url,"created":result.csv_created,
+            "bytes":result.csv_bytes,"sha256":result.csv_sha256,
+            "component_rows":result.csv_component_rows,"status_counts":result.status_counts,
+            "designated_type_counts":result.designated_type_counts,
+            "designated_single_rural_status_counts":result.designated_single_rural_status_counts,
+            "designated_multi_rural_status_ids":result.designated_multi_rural_status_ids,
+            "designated_single_component_ids":result.designated_single_component_ids,
+            "designated_multi_component_ids":result.designated_multi_component_ids,
+            "maximum_component_rows_per_designation":result.maximum_component_rows_per_designation,
+            "designated_component_county_fips":result.designated_component_county_fips
+        },
+        "quarterly_context":{
+            "source_url":result.quarterly_report_url,"bytes":result.quarterly_report_bytes,
+            "sha256":result.quarterly_report_sha256,"summary":result.quarterly_summary,
+            "cross_vintage_reconciliation_ready":result.cross_vintage_reconciliation_ready
+        },
+        "interpretation":{
+            "allowed":"current registry grain, status, designation type, rural-status multiplicity, component expansion, and separately vintaged quarterly totals",
+            "held":"hospital-level HPSA assignment, whole-county shortage, unique affected people, patient access, provider supply, staffed capacity, facility need met, adequacy, effects, costs, and savings",
+            "boundary":"CSV rows are designation components; HPSA IDs are designations; populations may overlap; daily and quarterly vintages are not merged."
+        }
+    }))?)
+}
+
+pub fn hrsa_primary_care_held_pack_json() -> Result<String, AccessError> {
+    let result = load_hrsa_primary_care_fixture()?;
+    let designated = &result.status_counts["Designated"];
+    let proposed = &result.status_counts["Proposed For Withdrawal"];
+    let withdrawn = &result.status_counts["Withdrawn"];
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:hrsa-primary-care-hpsa-census-2026-07-31:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"HRSA primary-care HPSA registry components and national quarterly summary","population_or_network":"geographic, population-group, and facility shortage designations","ownership":"HRSA Bureau of Health Workforce designation system","time_basis":"daily CSV created 2026-07-31; quarterly designations as of 2026-06-30","unit_basis":"component rows, unique HPSA IDs, and separately vintaged summary quantities","included":"registry status, designation type, rural-status multiplicity, component expansion, and national summary","excluded":"hospital assignment, whole-county shortage, deduplicated people, access, capacity, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":"HRSA-BCD_HPSA_FCT_DET_PC-2026-07-31 + HRSA-HPSA-QUARTERLY-2026-Q2","publisher":"Health Resources and Services Administration","source_path_or_url":result.csv_download_url,"vintage":"2026-07-31 daily CSV / 2026-06-30 quarterly designations","capture_status":"derived aggregate with status, identity, type, rurality, and component invariants","checksum_or_null":result.csv_sha256,"quarterly_checksum":result.quarterly_report_sha256},
+        "problem":{"baseline_metric":"primary-care shortage designation registry","baseline_value_or_null":designated.unique_designations,"affected_population_or_exposure_or_null":null,"problem_boundary":"designations and components are not unique counties, hospitals, or people","source_component_rows":result.csv_component_rows,"designated_hpsa_ids":designated.unique_designations,"proposed_for_withdrawal_hpsa_ids":proposed.unique_designations,"withdrawn_hpsa_ids":withdrawn.unique_designations,"multi_component_designated_ids":result.designated_multi_component_ids,"multi_rural_status_designated_ids":result.designated_multi_rural_status_ids,"quarterly_total_designations":result.quarterly_summary.total_designations,"cross_vintage_reconciliation_ready":result.cross_vintage_reconciliation_ready},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no HPSA designation, withdrawal, funding, workforce, facility, payment, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"designation components overlap and daily and quarterly totals differ by vintage/status surface","transferability_boundary":"shortage designation does not establish a hospital's staffed services, patient access, quality, or outcome"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"hospital_level_shortage":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"designation counts and reported shortage cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"registry baseline only","peer_goal_basis":null,"evaluation_horizons":"daily CSV and quarterly summary refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"overlap, component grain, changing status, provider supply, access, facility mapping, and population deduplication remain unresolved","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add components, overlapping designation populations, status classes, or vintages","observation_cadence":"daily and quarterly source refresh","reopen_triggers":"same-vintage component-to-designation-to-geography bridge plus bounded candidate, access, capacity, outcome, cost, incidence, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on HRSA registry or quarterly release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR ISF VET DEF","non_additivity_rule":"HPSA designations are shared eligibility/need context, not additive programs or spending claims"},
+        "readiness":{"domain_evidence_ready":true,"candidate_bounded":false,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"designation_workforce_or_facility_decision_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -450,5 +622,50 @@ mod tests {
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn hrsa_registry_reconciles_rows_ids_types_and_components() {
+        let result = load_hrsa_primary_care_fixture().unwrap();
+        assert_eq!(result.csv_component_rows, 79_150);
+        assert_eq!(
+            result.status_counts["Designated"].unique_designations,
+            7_682
+        );
+        assert_eq!(result.designated_multi_component_ids, 762);
+        assert_eq!(result.designated_multi_rural_status_ids, 282);
+    }
+
+    #[test]
+    fn hrsa_quarterly_snapshot_stays_separate_and_reconciles() {
+        let result = load_hrsa_primary_care_fixture().unwrap();
+        assert_eq!(result.quarterly_summary.total_designations, 9_003);
+        assert_eq!(result.quarterly_summary.practitioners_needed, 18_541);
+        assert!(!result.cross_vintage_reconciliation_ready);
+    }
+
+    #[test]
+    fn hrsa_baseline_states_component_and_overlap_boundaries() {
+        let output = hrsa_primary_care_baseline_json().unwrap();
+        assert!(output.contains("CSV rows are designation components"));
+        assert!(output.contains("populations may overlap"));
+    }
+
+    #[test]
+    fn hrsa_pack_does_not_assign_shortage_or_fiscal_authority() {
+        let output: serde_json::Value =
+            serde_json::from_str(&hrsa_primary_care_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["problem"]["designated_hpsa_ids"], 7_682);
+        assert_eq!(
+            output["problem"]["cross_vintage_reconciliation_ready"],
+            false
+        );
+        assert_eq!(
+            output["service_floors"]["hospital_level_shortage"],
+            serde_json::Value::Null
+        );
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
     }
 }

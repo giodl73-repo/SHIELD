@@ -36,3 +36,33 @@ The join uses state and an explicitly normalized county name. It applies no
 fuzzy matching or manual aliases and reports 72 CMS facilities as unmatched.
 RUCC is a county classification; it does not measure patient rurality, distance,
 travel time, hospital service areas, staffing, shortage, need, or adequacy.
+
+## HRSA-PC-HPSA-2026-07-31
+
+- Publisher: Health Resources and Services Administration (HRSA)
+- Dataset: Primary Care Health Professional Shortage Area detail CSV
+- Download: <https://data.hrsa.gov/DataDownload/DD_Files/BCD_HPSA_FCT_DET_PC.csv>
+- Created and captured: 2026-07-31
+- Source component rows: 79,150
+- Source CSV bytes: 48,303,351
+- Source CSV SHA-256: `8ed0007ef82194e44a1ee9086723e42f79e5effe96104cf3104648f2837d2673`
+- Derived fixture: `data/derived/hrsa-primary-care-hpsa-census-2026-07-31.json`
+
+The file contains designation-component rows. SHIELD counts unique HPSA IDs
+within each status and does not treat rows as independent designations,
+hospitals, whole counties, or people. Designation populations can overlap.
+
+## HRSA-HPSA-QUARTERLY-2026-Q2
+
+- Publisher: Health Resources and Services Administration (HRSA)
+- Report: Designated Health Professional Shortage Areas Statistics
+- Report: <https://data.hrsa.gov/Default/GenerateHPSAQuarterlyReport?stream=top>
+- Data as of: 2026-07-01; designations as of: 2026-06-30
+- Captured: 2026-07-31
+- Source PDF bytes: 937,344
+- Source PDF SHA-256: `e71178b1c88a6b00a8a4a28780ecbff1f75e39f490ea43a8e5c5c899e211f89c`
+- Primary-care HPSA designations: 9,003
+
+The quarterly total is retained at its stated vintage. It is not reconciled to
+the newer daily CSV because the two sources have different dates and status
+surfaces.

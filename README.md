@@ -91,6 +91,28 @@ class, not distance, travel time, patient rurality, staffing, shortage, need,
 service quality, or adequacy. The 72 unmatched rows remain visible rather than
 being silently assigned.
 
+### Primary-care shortage registry
+
+SHIELD also reproduces the July 31, 2026 HRSA primary-care HPSA download at
+its actual registry grain:
+
+| Current HRSA CSV result | Count |
+|---|---:|
+| Designation-component rows | 79,150 |
+| Unique currently `Designated` HPSA IDs | 7,682 |
+| Unique `Proposed For Withdrawal` HPSA IDs | 1,014 |
+| Unique `Withdrawn` HPSA IDs | 8,999 |
+| Currently designated IDs spanning multiple components | 762 |
+| Currently designated IDs spanning multiple rural-status values | 282 |
+
+HRSA's separate June 30 quarterly report counts 9,003 primary-care HPSA
+designations. SHIELD preserves that official total but does not force it to
+match the newer daily file: the sources have different dates and status
+surfaces. Component rows are not hospitals, counties, or people, and
+designation populations can overlap. This result therefore establishes a
+formal shortage-registry spine without assigning shortage, access, capacity,
+adequacy, costs, or savings to any hospital or community.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -116,7 +138,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS hospital-footprint result and held HLT handoff. |
+| `shield-cms-access` | Reconciled CMS/USDA facility baselines, HRSA shortage-registry census, and held HLT handoffs. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -130,6 +152,8 @@ cargo run -p shield-cli -- cms-access-baseline
 cargo run -p shield-cli -- cms-access-held-pack
 cargo run -p shield-cli -- cms-rurality-baseline
 cargo run -p shield-cli -- cms-rurality-held-pack
+cargo run -p shield-cli -- hrsa-primary-care-baseline
+cargo run -p shield-cli -- hrsa-primary-care-held-pack
 cargo test --workspace
 ```
 
