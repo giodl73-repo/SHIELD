@@ -329,3 +329,20 @@ borough shares range from 25.65% to 48.29%. The public model does not expose a
 formula supporting an exact under-ten-minute numerator. Section 15-129 requires
 reporting but specifies no minimum acceptable share; whole-law reporting
 completeness and a legal or service pass/fail are therefore not claimed.
+
+## NYC-LL119-REPORTING-SCOPE-2026
+
+- Enacted law PDF: <https://legistar.council.nyc.gov/View.ashx?GUID=346763F6-8F97-4948-A56C-D87F8EF8FFF9&ID=6501297&M=F>
+- PDF bytes / SHA-256: 170,028 / `6d703d17569b2329f17b0a44130a3907ac507af186001894dbfc15f00dd343c6`
+- Models/exploration bytes / SHA-256: 188,914 / `530d4991f946f71500f141fca2c7a217519b8e66b5545dcfc92a24ad784856b5`
+- Distinct-month query payload bytes / SHA-256: 612 / `72e94477a02809e18841f2003b85a0f00c97e2b64ac14ae346797d76d6d1a074`
+- Distinct-month response bytes / SHA-256: 4,394 / `4a1a845d12181eb89868cc5e07a56b9dec30839bc59be10d7177f8e058fe7420`
+- Derived fixture: `data/derived/nyc-ems-local-law-119-reporting-scope-2026.json`
+
+The enacted law requires monthly and yearly reports to the Council and Mayor,
+website posting, citywide results for each category, and borough
+disaggregation. It does not require community-district or division reporting.
+The public model contains 147 monthly labels from April 2014 through June 2026,
+and the official page exposes citywide and borough views. Formal submission to
+the Council and Mayor and a discrete yearly report were not verified, so full
+statutory compliance remains unassessed.

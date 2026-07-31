@@ -74,8 +74,8 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Audit community-district/division reporting completeness and acquire
-   compatible outcome and operational-driver evidence for Category 9.
+1. Verify Council/Mayor submission and discrete yearly-report publication, then
+   acquire compatible outcome and operational-driver evidence for Category 9.
 2. Add compatible population denominators and outcome evidence before testing
    an NYC access or delivery intervention.
 3. Add machine-readable substate emergency access coverage or publicly usable

@@ -1,0 +1,56 @@
+{
+  "law_custody": {
+    "publisher": "New York City Council and Office of the City Clerk",
+    "title": "Local Law No. 119 of 2013",
+    "url": "https://legistar.council.nyc.gov/View.ashx?GUID=346763F6-8F97-4948-A56C-D87F8EF8FFF9&ID=6501297&M=F",
+    "pdf_bytes": 170028,
+    "pdf_sha256": "6d703d17569b2329f17b0a44130a3907ac507af186001894dbfc15f00dd343c6",
+    "passed": "2013-12-10",
+    "approved": "2013-12-17"
+  },
+  "statutory_scope": {
+    "monthly_report_required": true,
+    "yearly_report_required": true,
+    "submit_to_council_required": true,
+    "submit_to_mayor_required": true,
+    "website_posting_required": true,
+    "citywide_each_category_required": true,
+    "borough_disaggregation_required": true,
+    "community_district_disaggregation_required": false,
+    "division_disaggregation_required": false,
+    "minimum_acceptable_category9_share_specified": false
+  },
+  "public_surface_custody": {
+    "landing_page": "https://www.nyc.gov/site/911reporting/reports/local-law-119-compliance.page",
+    "power_bi_resource_key": "e59d7043-7f5c-4a62-bdec-295ddb7cc7b3",
+    "power_bi_model_id": 533915,
+    "models_and_exploration_bytes": 188914,
+    "models_and_exploration_sha256": "530d4991f946f71500f141fca2c7a217519b8e66b5545dcfc92a24ad784856b5",
+    "report_sections": 2,
+    "visuals": 37,
+    "last_refresh": "2026-07-27T15:07:31.633",
+    "latest_month": "2026 / 06"
+  },
+  "monthly_history_query": {
+    "field": "PER_NAME_MONTH",
+    "payload_bytes": 612,
+    "payload_sha256": "72e94477a02809e18841f2003b85a0f00c97e2b64ac14ae346797d76d6d1a074",
+    "response_bytes": 4394,
+    "response_sha256": "4a1a845d12181eb89868cc5e07a56b9dec30839bc59be10d7177f8e058fe7420",
+    "distinct_months": 147,
+    "first_month": "2014 / 04",
+    "last_month": "2026 / 06"
+  },
+  "publication_assessment": {
+    "official_website_surface_observed": true,
+    "citywide_and_borough_surface_observed": true,
+    "monthly_history_in_public_model_observed": true,
+    "visible_historical_month_selector_observed": false,
+    "discrete_yearly_report_observed": false,
+    "submission_to_council_verified": false,
+    "submission_to_mayor_verified": false,
+    "full_statutory_reporting_compliance_ready": false,
+    "performance_pass_fail_ready": false,
+    "taxlane_admission_ready": false
+  }
+}

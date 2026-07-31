@@ -32,8 +32,8 @@ Allowed: official Category 9 definition, calendar-2025 citywide and borough
 published incident counts and shares, dashboard currency, and the observation
 that the public citywide/borough surface exists.
 
-Held: full compliance with every reporting grain in NYC Administrative Code
-§15-129; a legal or service performance pass/fail; an exact under-10 numerator;
+Held: full compliance with the submission and publication duties in NYC
+Administrative Code §15-129; a legal or service performance pass/fail; an exact under-10 numerator;
 comparison to the severity-1 dispatch proxy; patient outcomes; causes; inequity;
 adequacy; interventions; costs; savings; allocation; rates; or public release.
 Section 15-129 imposes reporting duties but does not specify a minimum Category 9
@@ -62,6 +62,8 @@ The seven-voice parliament and three-role editorial gate reached a fixed point:
 | Numeracy checker | pass — borough counts reconcile; official shares are preserved; the non-integral implied numerator is not invented. |
 | Scope keeper | pass — publication observation, whole-law compliance, performance standard, adequacy, and fiscal authority remain distinct. |
 
-No critical or major finding remains. The next highest-value evidence slice is a
-community-district/division completeness check and outcome/operations join,
-followed by a separately bounded intervention package if evidence permits.
+Correction: the enacted law requires citywide reports disaggregated by borough,
+not community district or division. WP-022 records the exact legal scope. Full
+compliance remains held because Council/Mayor submission and discrete yearly
+publication were not verified. The next evidence slice is an outcome/operations
+join, followed by a separately bounded intervention package if evidence permits.

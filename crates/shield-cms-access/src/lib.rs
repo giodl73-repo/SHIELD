@@ -33,6 +33,8 @@ const NYC_EMS_RESPONSE_DISTRIBUTION_TARGET_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-response-distribution-target-2025.json");
 const NYC_EMS_LOCAL_LAW_119_CATEGORY9_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-local-law-119-category9-2025.json");
+const NYC_EMS_LOCAL_LAW_119_REPORTING_SCOPE_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-local-law-119-reporting-scope-2026.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -2535,7 +2537,7 @@ pub fn nyc_ems_local_law_119_category9_held_pack_json() -> Result<String, Access
     Ok(serde_json::to_string(&json!({
         "schema":"taxlane.lane-evidence-pack-candidate.v1",
         "identity":{"pack_id":"shield:nyc-ems-local-law-119-category9-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
-        "scope":{"geography":"New York City and boroughs","population_or_network":"reported Advanced Life Support medical emergencies","ownership":"City of New York","time_basis":"calendar 2025, dashboard current through June 2026","unit_basis":"qualifying incidents and official measure shares","included":"official Category 9 citywide and borough publication","excluded":"community-district and division completeness audit, exact successful-response numerator, dispatch proxy, patient condition, outcomes, causes, adequacy, candidates, effects, and costs"},
+        "scope":{"geography":"New York City and boroughs","population_or_network":"reported Advanced Life Support medical emergencies","ownership":"City of New York","time_basis":"calendar 2025, dashboard current through June 2026","unit_basis":"qualifying incidents and official measure shares","included":"official Category 9 citywide and borough publication","excluded":"Council/Mayor submission and yearly-publication audit, exact successful-response numerator, dispatch proxy, patient condition, outcomes, causes, adequacy, candidates, effects, and costs"},
         "source_custody":{"source_id":"NYC-LL119-CATEGORY9-2025","publisher":result.source.publisher,"source_path_or_url":result.source.landing_page,"vintage":"calendar 2025; data as of 2026-07-27","capture_status":"exact public Power BI model, schema, query payload, and response custody","checksum_or_null":result.query_custody.citywide_response_sha256},
         "problem":{"baseline_metric":"official Category 9 share","baseline_value_or_null":result.citywide.official_share_bps,"affected_population_or_exposure_or_null":result.citywide.qualifying_incidents,"problem_boundary":"39.26% is a reported threshold-attainment measure, not a finding that NYC passed or failed a legal performance standard","exact_under_ten_numerator_or_null":null,"borough":result.borough},
         "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no operations, staffing, fleet, routing, hospital, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
@@ -2543,11 +2545,170 @@ pub fn nyc_ems_local_law_119_category9_held_pack_json() -> Result<String, Access
         "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
         "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
         "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"official NYC Category 9 publication only","netting_rule":"a threshold-attainment observation cannot enter Taxlane fiscal arithmetic"},
-        "adaptive_pathways":{"pathway_classes":"official local ALS response observation","peer_goal_basis":null,"evaluation_horizons":"annual dashboard refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"borough differences do not identify causes, harm, or feasible remedies","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add qualifying incidents to dispatch, ED, inpatient, or unique-patient counts","observation_cadence":"NYC Local Law 119 dashboard update","reopen_triggers":"community-district and division completeness, outcome join, operational drivers, candidate design, costs, and delivery evidence","current_disposition":"held"},
+        "adaptive_pathways":{"pathway_classes":"official local ALS response observation","peer_goal_basis":null,"evaluation_horizons":"annual dashboard refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"borough differences do not identify causes, harm, or feasible remedies","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add qualifying incidents to dispatch, ED, inpatient, or unique-patient counts","observation_cadence":"NYC Local Law 119 dashboard update","reopen_triggers":"Council/Mayor submission and yearly-publication evidence, outcome join, operational drivers, candidate design, costs, and delivery evidence","current_disposition":"held"},
         "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on dashboard update"},
         "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"TRN RUR","non_additivity_rule":"reported incidents are operational context, not additive program need or spending"},
         "readiness":{"domain_evidence_ready":true,"definition_compatible_measure_ready":true,"citywide_borough_publication_ready":true,"full_statutory_reporting_compliance_ready":false,"performance_pass_fail_ready":false,"exact_numerator_ready":false,"outcome_ready":false,"adequacy_ready":false,"candidate_bounded":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
         "claim_boundaries":{"domain_finding_allowed":true,"official_category9_publication_claim_allowed":true,"full_reporting_compliance_claim_allowed":false,"performance_pass_fail_claim_allowed":false,"dispatch_comparison_allowed":false,"causal_claim_allowed":false,"adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsLawCustody {
+    pub publisher: String,
+    pub title: String,
+    pub url: String,
+    pub pdf_bytes: u64,
+    pub pdf_sha256: String,
+    pub passed: String,
+    pub approved: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsStatutoryScope {
+    pub monthly_report_required: bool,
+    pub yearly_report_required: bool,
+    pub submit_to_council_required: bool,
+    pub submit_to_mayor_required: bool,
+    pub website_posting_required: bool,
+    pub citywide_each_category_required: bool,
+    pub borough_disaggregation_required: bool,
+    pub community_district_disaggregation_required: bool,
+    pub division_disaggregation_required: bool,
+    pub minimum_acceptable_category9_share_specified: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsPublicSurfaceCustody {
+    pub landing_page: String,
+    pub power_bi_resource_key: String,
+    pub power_bi_model_id: u64,
+    pub models_and_exploration_bytes: u64,
+    pub models_and_exploration_sha256: String,
+    pub report_sections: u64,
+    pub visuals: u64,
+    pub last_refresh: String,
+    pub latest_month: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsMonthlyHistoryQuery {
+    pub field: String,
+    pub payload_bytes: u64,
+    pub payload_sha256: String,
+    pub response_bytes: u64,
+    pub response_sha256: String,
+    pub distinct_months: u64,
+    pub first_month: String,
+    pub last_month: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsPublicationAssessment {
+    pub official_website_surface_observed: bool,
+    pub citywide_and_borough_surface_observed: bool,
+    pub monthly_history_in_public_model_observed: bool,
+    pub visible_historical_month_selector_observed: bool,
+    pub discrete_yearly_report_observed: bool,
+    pub submission_to_council_verified: bool,
+    pub submission_to_mayor_verified: bool,
+    pub full_statutory_reporting_compliance_ready: bool,
+    pub performance_pass_fail_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsLocalLaw119ReportingScope {
+    pub law_custody: NycEmsLawCustody,
+    pub statutory_scope: NycEmsStatutoryScope,
+    pub public_surface_custody: NycEmsPublicSurfaceCustody,
+    pub monthly_history_query: NycEmsMonthlyHistoryQuery,
+    pub publication_assessment: NycEmsPublicationAssessment,
+}
+
+impl NycEmsLocalLaw119ReportingScope {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let law = &self.statutory_scope;
+        let observed = &self.publication_assessment;
+        if self.law_custody.pdf_bytes != 170_028
+            || self.law_custody.pdf_sha256.len() != 64
+            || self
+                .public_surface_custody
+                .models_and_exploration_sha256
+                .len()
+                != 64
+            || self.monthly_history_query.payload_sha256.len() != 64
+            || self.monthly_history_query.response_sha256.len() != 64
+            || self.monthly_history_query.distinct_months != 147
+            || !law.monthly_report_required
+            || !law.yearly_report_required
+            || !law.submit_to_council_required
+            || !law.submit_to_mayor_required
+            || !law.website_posting_required
+            || !law.citywide_each_category_required
+            || !law.borough_disaggregation_required
+            || law.community_district_disaggregation_required
+            || law.division_disaggregation_required
+            || law.minimum_acceptable_category9_share_specified
+            || !observed.official_website_surface_observed
+            || !observed.citywide_and_borough_surface_observed
+            || !observed.monthly_history_in_public_model_observed
+            || observed.visible_historical_month_selector_observed
+            || observed.discrete_yearly_report_observed
+            || observed.submission_to_council_verified
+            || observed.submission_to_mayor_verified
+            || observed.full_statutory_reporting_compliance_ready
+            || observed.performance_pass_fail_ready
+            || observed.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS Local Law 119 reporting-scope boundary failed".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_local_law_119_reporting_scope_fixture(
+) -> Result<NycEmsLocalLaw119ReportingScope, AccessError> {
+    let result: NycEmsLocalLaw119ReportingScope =
+        serde_json::from_str(NYC_EMS_LOCAL_LAW_119_REPORTING_SCOPE_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_local_law_119_reporting_scope_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_local_law_119_reporting_scope_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-local-law-119-reporting-scope.v1",
+        "law_custody":result.law_custody,
+        "statutory_scope":result.statutory_scope,
+        "public_surface_custody":result.public_surface_custody,
+        "monthly_history_query":result.monthly_history_query,
+        "publication_assessment":result.publication_assessment,
+        "correction":{"prior_incorrect_boundary":"community-district and division reporting completeness","correct_boundary":"the enacted law requires citywide reports disaggregated by borough; full compliance remains unproved because Council/Mayor submission and a discrete yearly publication were not verified"},
+        "interpretation":{"allowed":"the enacted reporting grains and the observed website, citywide/borough, and 147-month public-model surfaces","held":"full statutory compliance, Council/Mayor submission, discrete yearly-report publication, performance pass/fail, causes, adequacy, interventions, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_local_law_119_reporting_scope_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_local_law_119_reporting_scope_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-local-law-119-reporting-scope-2026:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"New York City and boroughs","population_or_network":"Local Law 119 reporting system","ownership":"FDNY / City of New York","time_basis":"law enacted 2013; public model April 2014 through June 2026","unit_basis":"statutory duties, report surfaces, and monthly labels","included":"enacted reporting scope and observable public-model publication surface","excluded":"proof of submission to Council or Mayor, discrete yearly-report custody, performance minimum, patient outcomes, operations drivers, candidates, effects, and costs"},
+        "source_custody":{"source_id":"NYC-LL119-REPORTING-SCOPE-2026","publisher":result.law_custody.publisher,"source_path_or_url":result.law_custody.url,"vintage":"Local Law 119 of 2013; dashboard refreshed 2026-07-27","capture_status":"exact enacted-law PDF, models/exploration response, and distinct-month query custody","checksum_or_null":result.law_custody.pdf_sha256},
+        "problem":{"baseline_metric":"observable statutory publication coverage","baseline_value_or_null":result.monthly_history_query.distinct_months,"affected_population_or_exposure_or_null":null,"problem_boundary":"website, citywide/borough, and monthly-model observations do not prove Council/Mayor submission or discrete yearly publication","statutory_scope":result.statutory_scope,"publication_assessment":result.publication_assessment},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no reporting-remediation, EMS operations, staffing, fleet, routing, hospital, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"submission custody, yearly publication, report completeness, patient outcomes, and operating causes remain unresolved","transferability_boundary":"a NYC reporting-scope audit establishes neither service performance nor another jurisdiction"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"reporting-scope correction only","netting_rule":"a reporting-surface audit cannot enter fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"statutory reporting-scope correction","peer_goal_basis":null,"evaluation_horizons":"dashboard refresh and annual custody review","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"public-model availability does not prove formal submission","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add months or reports to service-need counts","observation_cadence":"NYC dashboard refresh","reopen_triggers":"Council/Mayor submission receipts, discrete yearly report, outcome join, operations drivers, candidate design, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on law or dashboard change"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":null,"non_additivity_rule":"report artifacts are evidence custody, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"statutory_scope_ready":true,"website_publication_observed":true,"monthly_model_history_ready":true,"full_statutory_compliance_ready":false,"performance_pass_fail_ready":false,"outcome_ready":false,"adequacy_ready":false,"candidate_bounded":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"correction_required":true,"website_publication_claim_allowed":true,"full_reporting_compliance_claim_allowed":false,"performance_pass_fail_claim_allowed":false,"causal_claim_allowed":false,"adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
     }))?)
 }
 
@@ -3269,6 +3430,61 @@ mod tests {
         );
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["claim_boundaries"]["causal_claim_allowed"], false);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_local_law_scope_is_borough_not_community_district_or_division() {
+        let result = load_nyc_ems_local_law_119_reporting_scope_fixture().unwrap();
+        assert!(result.statutory_scope.monthly_report_required);
+        assert!(result.statutory_scope.yearly_report_required);
+        assert!(result.statutory_scope.borough_disaggregation_required);
+        assert!(
+            !result
+                .statutory_scope
+                .community_district_disaggregation_required
+        );
+        assert!(!result.statutory_scope.division_disaggregation_required);
+        assert!(
+            !result
+                .statutory_scope
+                .minimum_acceptable_category9_share_specified
+        );
+    }
+
+    #[test]
+    fn nyc_ems_public_model_has_monthly_history_without_proving_submission() {
+        let result = load_nyc_ems_local_law_119_reporting_scope_fixture().unwrap();
+        assert_eq!(result.monthly_history_query.distinct_months, 147);
+        assert_eq!(result.monthly_history_query.first_month, "2014 / 04");
+        assert_eq!(result.monthly_history_query.last_month, "2026 / 06");
+        assert!(
+            result
+                .publication_assessment
+                .monthly_history_in_public_model_observed
+        );
+        assert!(!result.publication_assessment.submission_to_council_verified);
+        assert!(!result.publication_assessment.submission_to_mayor_verified);
+        assert!(
+            !result
+                .publication_assessment
+                .full_statutory_reporting_compliance_ready
+        );
+    }
+
+    #[test]
+    fn nyc_ems_reporting_scope_pack_holds_performance_and_fiscal_authority() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nyc_ems_local_law_119_reporting_scope_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(output["readiness"]["statutory_scope_ready"], true);
+        assert_eq!(
+            output["readiness"]["full_statutory_compliance_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["performance_pass_fail_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["correction_required"], true);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }
 }

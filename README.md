@@ -431,6 +431,8 @@ cargo run -p shield-cli -- nyc-ems-response-distribution-target-baseline
 cargo run -p shield-cli -- nyc-ems-response-distribution-target-held-pack
 cargo run -p shield-cli -- nyc-ems-local-law-119-category9-baseline
 cargo run -p shield-cli -- nyc-ems-local-law-119-category9-held-pack
+cargo run -p shield-cli -- nyc-ems-local-law-119-reporting-scope-baseline
+cargo run -p shield-cli -- nyc-ems-local-law-119-reporting-scope-held-pack
 cargo test --workspace
 ```
 
