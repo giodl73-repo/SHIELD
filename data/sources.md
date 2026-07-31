@@ -309,3 +309,23 @@ surfaces differ on calendar versus fiscal year, severity 1 versus Segment 1–3,
 incident creation versus call receipt, and unproved arriving-unit scope. The
 derived at-or-below-ten-minute share is not Local Law Category 9, which is an
 ALS-unit measure for qualifying ALS emergencies.
+
+## NYC-LL119-CATEGORY9-2025
+
+- Publisher: City of New York
+- Dashboard: <https://www.nyc.gov/site/911reporting/reports/local-law-119-compliance.page>
+- Definitions: <https://www.nyc.gov/site/911reporting/reports/definitions.page>
+- Current code §15-129: <https://codelibrary.amlegal.com/codes/newyorkcity/latest/NYCadmin/0-0-0-25711>
+- Power BI resource / model: `e59d7043-7f5c-4a62-bdec-295ddb7cc7b3` / `533915`
+- Data as of / latest month / captured: 2026-07-27 / 2026-06 / 2026-07-31
+- Conceptual schema bytes / SHA-256: 6,408 / `afae4549ef2811c72ea79f39adc12a3c4bf3b3bd22337096b7153869d2106bd7`
+- Citywide query response bytes / SHA-256: 3,157 / `f238bfae46fcf541002a4e76e7522c8e8cfc94d6cd3476ef1aa0166dda53e4b9`
+- Borough query response bytes / SHA-256: 4,550 / `81f6cfb984cd4cfaa14fdf3579962d0fa8e943ce1c2cfb4c1b2c8fcf0ca9c105`
+- Derived fixture: `data/derived/nyc-ems-local-law-119-category9-2025.json`
+
+The official calendar-2025 Category 9 measure is 39.26% across 216,599
+qualifying incidents. Borough counts reconcile to the citywide count; named
+borough shares range from 25.65% to 48.29%. The public model does not expose a
+formula supporting an exact under-ten-minute numerator. Section 15-129 requires
+reporting but specifies no minimum acceptable share; whole-law reporting
+completeness and a legal or service pass/fail are therefore not claimed.

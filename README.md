@@ -397,7 +397,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target context, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target and official Local Law 119 Category 9 context, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -429,6 +429,8 @@ cargo run -p shield-cli -- nyc-ems-response-time-baseline
 cargo run -p shield-cli -- nyc-ems-response-time-held-pack
 cargo run -p shield-cli -- nyc-ems-response-distribution-target-baseline
 cargo run -p shield-cli -- nyc-ems-response-distribution-target-held-pack
+cargo run -p shield-cli -- nyc-ems-local-law-119-category9-baseline
+cargo run -p shield-cli -- nyc-ems-local-law-119-category9-held-pack
 cargo test --workspace
 ```
 

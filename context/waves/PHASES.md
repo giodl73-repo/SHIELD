@@ -22,11 +22,12 @@ Work is organized into small waves and pulses.
 | `2026-07-31-minnesota-stroke-drive-time` | complete | Current Minnesota designated-stroke-hospital modeled drive-time coverage, with actual EMS trips and substate inference held (WP-018). |
 | `2026-07-31-nyc-ems-response-time` | complete | Calendar-2025 FDNY incident-to-scene and assignment-to-scene means, with patient condition, outcomes, adequacy, and fiscal claims held (WP-019). |
 | `2026-07-31-nyc-ems-response-distribution-target` | complete | Severity-1 response tails and separately defined official MMR targets, with direct comparison, adequacy, and fiscal claims held (WP-020). |
+| `2026-07-31-nyc-ems-local-law-119-category9` | complete | Official calendar-2025 Category 9 citywide and borough publication, with whole-law compliance, pass/fail, adequacy, and fiscal claims held (WP-021). |
 
 ## Active wave
 
-- No active wave. The next NYC slice requires a definition-compatible Local Law
-  119 or MMR extract, then population denominators and outcomes in a separately
+- No active wave. The next NYC slice is a community-district/division reporting
+  completeness audit and compatible outcome/operations join in a separately
   accepted work package.
 
 ## Protocol

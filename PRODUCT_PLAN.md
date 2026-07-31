@@ -63,6 +63,10 @@ where infrastructure methods do not transfer cleanly.
   792-second p95, and 86.86% at or below ten minutes, plus separately grained
   official MMR targets that cannot be forced onto the extract because time,
   severity, call-start, and arriving-unit definitions do not reconcile.
+- An official calendar-2025 Local Law 119 Category 9 publication at 39.26%
+  across 216,599 qualifying incidents, with reconciled borough counts and exact
+  public-model custody. This supports a definition-compatible observation, not
+  whole-law compliance, a legal performance pass/fail, or fiscal authority.
 
 ## Next work
 
@@ -70,8 +74,8 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Acquire a definition-compatible Local Law 119 or MMR extract that can test
-   target compliance, including ALS Category 9 where applicable.
+1. Audit community-district/division reporting completeness and acquire
+   compatible outcome and operational-driver evidence for Category 9.
 2. Add compatible population denominators and outcome evidence before testing
    an NYC access or delivery intervention.
 3. Add machine-readable substate emergency access coverage or publicly usable

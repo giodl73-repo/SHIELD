@@ -1,0 +1,49 @@
+{
+  "source": {
+    "publisher": "City of New York",
+    "dashboard_title": "Local Law 119 Compliance",
+    "landing_page": "https://www.nyc.gov/site/911reporting/reports/local-law-119-compliance.page",
+    "definitions_page": "https://www.nyc.gov/site/911reporting/reports/definitions.page",
+    "code_section_url": "https://codelibrary.amlegal.com/codes/newyorkcity/latest/NYCadmin/0-0-0-25711",
+    "power_bi_resource_key": "e59d7043-7f5c-4a62-bdec-295ddb7cc7b3",
+    "power_bi_model_id": 533915,
+    "data_as_of": "2026-07-27",
+    "latest_month": "2026-06",
+    "captured": "2026-07-31",
+    "conceptual_schema_bytes": 6408,
+    "conceptual_schema_sha256": "afae4549ef2811c72ea79f39adc12a3c4bf3b3bd22337096b7153869d2106bd7"
+  },
+  "query_custody": {
+    "citywide_payload_bytes": 2758,
+    "citywide_payload_sha256": "e7039089906703efbdc6c09d337fb1a4ddeaf057292f4bcebbef5380b92bc2f0",
+    "citywide_response_bytes": 3157,
+    "citywide_response_sha256": "f238bfae46fcf541002a4e76e7522c8e8cfc94d6cd3476ef1aa0166dda53e4b9",
+    "borough_payload_bytes": 2872,
+    "borough_payload_sha256": "bdc3cef00d7d530790fc06bc2194f0c2e6f31835b08ab15a96dff0ff511309f5",
+    "borough_response_bytes": 4550,
+    "borough_response_sha256": "81f6cfb984cd4cfaa14fdf3579962d0fa8e943ce1c2cfb4c1b2c8fcf0ca9c105"
+  },
+  "definition": "Percentage of response time of less than 10 minutes to Advanced Life Support medical emergencies by Advanced Life Support ambulances.",
+  "citywide": {"qualifying_incidents": 216599, "official_share": 0.39259926131117268, "official_share_bps": 3926, "exact_under_ten_numerator": null},
+  "borough": {
+    "Bronx": {"qualifying_incidents": 36025, "official_share": 0.25648854961832063, "official_share_bps": 2565},
+    "Brooklyn": {"qualifying_incidents": 69108, "official_share": 0.45520843884298717, "official_share_bps": 4552},
+    "Manhattan": {"qualifying_incidents": 56194, "official_share": 0.41856781862832332, "official_share_bps": 4186},
+    "Queens": {"qualifying_incidents": 41866, "official_share": 0.34342903549419579, "official_share_bps": 3434},
+    "Staten Island": {"qualifying_incidents": 13270, "official_share": 0.48289374529012813, "official_share_bps": 4829},
+    "Unspecified": {"qualifying_incidents": 136, "official_share": 0.22794117647058823, "official_share_bps": 2279}
+  },
+  "legal_and_claim_boundaries": {
+    "category9_citywide_borough_publication_observed": true,
+    "full_statutory_reporting_compliance_assessed": false,
+    "minimum_acceptable_share_specified_in_section_15_129": false,
+    "performance_pass_fail_ready": false,
+    "exact_numerator_ready": false,
+    "dispatch_proxy_comparable": false,
+    "patient_outcomes_joined": false,
+    "causal_explanation_ready": false,
+    "adequacy_ready": false,
+    "candidate_ready": false,
+    "taxlane_admission_ready": false
+  }
+}
