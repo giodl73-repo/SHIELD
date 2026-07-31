@@ -1,5 +1,11 @@
 # Verification Plan
 
+> Current-state reconciliation (2026-07-31): the implementation described as
+> future below now exists. Workspace formatting and clippy are clean and all 38
+> unit tests pass, including the first CMS aggregate feature and held HLT pack.
+> The original matrix remains as the preimplementation verification design;
+> uncalibrated adequacy and real-candidate validation claims remain pending.
+
 ## Scope
 
 Repo: SHIELD

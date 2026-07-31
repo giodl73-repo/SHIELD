@@ -1,5 +1,11 @@
 # Trace Matrix
 
+> Current-state reconciliation (2026-07-31): WP-001..006 are implemented and
+> reverified in the seven-crate workspace. WP-007 is the first accepted public
+> aggregate feature. The historical rows below preserve the original
+> greenfield trace posture; candidate outcomes, calibrated adequacy, costs, and
+> fiscal admission remain deferred rather than being inferred from code presence.
+
 ## Scope
 
 Repo: SHIELD

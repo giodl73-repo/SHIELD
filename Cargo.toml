@@ -6,5 +6,6 @@ members = [
     "crates/shield-score",
     "crates/shield-tier",
     "crates/shield-gap",
+    "crates/shield-cms-access",
     "crates/shield-cli",
 ]

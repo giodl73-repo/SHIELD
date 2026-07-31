@@ -50,6 +50,29 @@ coverage, referral path, or travel time cannot be repaired by a single total.
 SHIELD deliberately tests where physical-infrastructure scoring transfers—and
 where it breaks—on a service-and-human network.
 
+## First public-data result: the hospital footprint
+
+SHIELD now reproduces the May 13, 2026 CMS Hospital General Information
+release as a bounded national denominator:
+
+| What CMS reports | Facilities |
+|---|---:|
+| Medicare-registered hospitals | 5,432 |
+| Flagged `Emergency Services = Yes` | 4,498 |
+| Critical Access Hospitals | 1,378 |
+| Rural Emergency Hospitals | 41 |
+
+The source contains 5,432 unique facility IDs across 56 states and included
+territories. Its hospital-type, emergency-service, and geography partitions
+each reconcile independently to the same denominator.
+
+This is useful because it establishes *where to start asking access questions*.
+It does not answer them. Facility presence is not travel access; an emergency
+flag is not a staffing or response-time SLA; and unlike hospital types cannot
+be added as interchangeable capacity. Travel time, staffed beds, clinicians,
+service breadth, wait time, affordability, quality, outcomes, equity, need,
+costs, and savings all remain held.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -75,6 +98,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
+| `shield-cms-access` | Reconciled CMS hospital-footprint result and held HLT handoff. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -84,6 +108,8 @@ or clinical recommendations belong in this repository.
 
 ```powershell
 cargo run -p shield-cli -- --help
+cargo run -p shield-cli -- cms-access-baseline
+cargo run -p shield-cli -- cms-access-held-pack
 cargo test --workspace
 ```
 

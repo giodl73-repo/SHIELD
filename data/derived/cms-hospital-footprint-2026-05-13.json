@@ -1,0 +1,41 @@
+{
+  "source": {
+    "publisher": "Centers for Medicare & Medicaid Services (CMS)",
+    "dataset_title": "Hospital General Information",
+    "dataset_id": "xubh-q36u",
+    "landing_page": "https://data.cms.gov/provider-data/dataset/xubh-q36u",
+    "download_url": "https://data.cms.gov/provider-data/sites/default/files/resources/893c372430d9d71a1c52737d01239d47_1777413958/Hospital_General_Information.csv",
+    "released": "2026-05-13",
+    "modified": "2026-04-28",
+    "captured": "2026-07-31",
+    "source_row_count": 5432,
+    "source_unique_facility_ids": 5432,
+    "csv_bytes": 1453884,
+    "csv_sha256": "83c98b2e8687580e0482b13e1e9acd5813534be243e5ccd9f55556a869595d40"
+  },
+  "total_facilities": 5432,
+  "emergency_service_yes": 4498,
+  "emergency_service_no": 934,
+  "hospital_types": {
+    "Acute Care - Department of Defense": 32,
+    "Acute Care - Veterans Administration": 132,
+    "Acute Care Hospitals": 3115,
+    "Childrens": 94,
+    "Critical Access Hospitals": 1378,
+    "Long-term": 5,
+    "Psychiatric": 635,
+    "Rural Emergency Hospital": 41
+  },
+  "states_and_territories": {
+    "AK": 25, "AL": 100, "AR": 91, "AS": 1, "AZ": 107, "CA": 378,
+    "CO": 97, "CT": 36, "DC": 10, "DE": 13, "FL": 221, "GA": 149,
+    "GU": 2, "HI": 24, "IA": 118, "ID": 48, "IL": 194, "IN": 151,
+    "KS": 138, "KY": 103, "LA": 161, "MA": 84, "MD": 56, "ME": 36,
+    "MI": 148, "MN": 136, "MO": 121, "MP": 1, "MS": 108, "MT": 63,
+    "NC": 120, "ND": 47, "NE": 93, "NH": 28, "NJ": 79, "NM": 45,
+    "NV": 46, "NY": 191, "OH": 196, "OK": 135, "OR": 62, "PA": 187,
+    "PR": 60, "RI": 13, "SC": 66, "SD": 61, "TN": 122, "TX": 468,
+    "UT": 52, "VA": 96, "VI": 2, "VT": 17, "WA": 100, "WI": 141,
+    "WV": 55, "WY": 30
+  }
+}

@@ -16,12 +16,12 @@ VTRACE trace.
 
 | Pulse | Work Package | Status | Outcome |
 |------:|--------------|--------|---------|
-| 01 | WP-001 `shield-network` | pending | Facility/referral kernel: identity, connectivity, diverse paths, capacity_beds and typed DemandBasis helpers. |
-| 02 | WP-002 `shield-corpus` | pending | Corpus model + scale/market tags + schema + sources + evidence labels. |
-| 03 | WP-003 `shield-score` | pending | Dimension scoring DIM-01..13 + rubric record. |
-| 04 | WP-004 `shield-tier` | pending | Tier T1–T4 + SLA conformance + tier-SLA gap. |
-| 05 | WP-005 `shield-gap` | pending | Gap analysis (scale-filtered) + null/transfer result. |
-| 06 | WP-006 `shield-cli` | pending | CLI orchestration (`--scale`) + reproducible artifacts. |
+| 01 | WP-001 `shield-network` | complete | Facility/referral kernel: identity, connectivity, diverse paths, capacity_beds and typed DemandBasis helpers. |
+| 02 | WP-002 `shield-corpus` | complete | Corpus model + scale/market tags + schema + sources + evidence labels. |
+| 03 | WP-003 `shield-score` | complete | Dimension scoring DIM-01..13 + rubric record. |
+| 04 | WP-004 `shield-tier` | complete | Tier T1–T4 + SLA conformance + tier-SLA gap. |
+| 05 | WP-005 `shield-gap` | complete | Gap analysis (scale-filtered) + null/transfer result. |
+| 06 | WP-006 `shield-cli` | complete | CLI orchestration (`--scale`) + reproducible artifacts. |
 
 ## Success criteria
 
@@ -30,3 +30,8 @@ VTRACE trace.
   after every pulse.
 - `proof check .` stays clean.
 - VTRACE trace/verification rows updated as each WP closes.
+
+Status reconciliation: the product crates and tests were present at the pinned
+repository baseline. On 2026-07-31 the full workspace was reverified clean while
+executing WP-007; this table now reflects repository state rather than the stale
+preimplementation labels that remained in the original wave ledger.

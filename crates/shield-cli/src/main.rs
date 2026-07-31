@@ -10,6 +10,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Reproduce the bounded CMS national hospital-footprint baseline.
+    CmsAccessBaseline,
+    /// Emit the non-authoritative HLT evidence pack for Taxlane review.
+    CmsAccessHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -30,6 +34,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::CmsAccessBaseline => println!("{}", shield_cms_access::baseline_json()?),
+        Commands::CmsAccessHeldPack => println!("{}", shield_cms_access::held_pack_json()?),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -85,5 +91,11 @@ mod tests {
     #[test]
     fn parses_corpus() {
         assert!(Cli::try_parse_from(["shield", "corpus", "some.md"]).is_ok());
+    }
+
+    #[test]
+    fn parses_cms_access_commands() {
+        assert!(Cli::try_parse_from(["shield", "cms-access-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "cms-access-held-pack"]).is_ok());
     }
 }

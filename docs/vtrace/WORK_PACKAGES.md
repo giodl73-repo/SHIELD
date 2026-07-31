@@ -10,12 +10,12 @@ Product boundary rule: VTRACE/work-package/proof/readiness/evidence concepts are
 
 | ID | Objective | Parent IDs | Affected Surfaces | L0 / L1 / L2 | Status |
 |---|---|---|---|---|---|
-| WP-001 | Facility/referral graph kernel: identity, connectivity, diverse paths, beds capacity, typed demand basis | REQ-004/005/007, SPEC-001/005, IF-005, PKG-001, CR-001..008 | `Cargo.toml`, `crates/shield-network/**` | L0: `cargo test -p shield-network` / L1: workspace fmt+clippy+test / L2: n/a | ready |
-| WP-002 | Corpus model + scale/jurisdiction tags + `corpus/SCHEMA.md` + `data/sources.md` + labels + hold/reject | REQ-001/002/003/005/016, SPEC-002/003/009/013, IF-001/002, PKG-002 | `crates/shield-corpus/**`, `corpus/SCHEMA.md`, `data/sources.md` | L0: `cargo test -p shield-corpus` + `proof check .` / L1: workspace / L2: n/a | blocked by WP-001 |
-| WP-003 | Dimension scoring DIM-01..13 (0–10) + rubric version record | REQ-006, SPEC-004, IF-003, PKG-003 | `crates/shield-score/**` | L0: `cargo test -p shield-score` / L1: workspace / L2: n/a | blocked by WP-002 |
-| WP-004 | Tier T1–T4 classification + SLA conformance (DIM-13) + tier-SLA gap | REQ-014/015, SPEC-011/012, IF-004, PKG-004 | `crates/shield-tier/**`, `tiers.toml` | L0: `cargo test -p shield-tier` / L1: workspace / L2: n/a | blocked by WP-003 |
-| WP-005 | Gap analysis: under-served-region finder + scale filter + null result | REQ-008/016, SPEC-006/013, PKG-005 | `crates/shield-gap/**` | L0: `cargo test -p shield-gap` / L1: workspace / L2: n/a | blocked by WP-004 |
-| WP-006 | `shield` CLI: corpus/score/tier-sla/gap commands (incl. `--scale`) + reproducible artifacts | REQ-001, IF-006, PKG-006 | `crates/shield-cli/**` | L0: `cargo run -p shield-cli -- --help` / L1: workspace / L2: end-to-end demo | blocked by WP-005 |
+| WP-001 | Facility/referral graph kernel: identity, connectivity, diverse paths, beds capacity, typed demand basis | REQ-004/005/007, SPEC-001/005, IF-005, PKG-001, CR-001..008 | `Cargo.toml`, `crates/shield-network/**` | L0: `cargo test -p shield-network` / L1: workspace fmt+clippy+test / L2: n/a | complete |
+| WP-002 | Corpus model + scale/jurisdiction tags + `corpus/SCHEMA.md` + labels + hold/reject | REQ-001/002/003/005/016, SPEC-002/003/009/013, IF-001/002, PKG-002 | `crates/shield-corpus/**`, `corpus/SCHEMA.md`, `data/sources.md` | L0: `cargo test -p shield-corpus` + `proof check .` / L1: workspace / L2: n/a | complete |
+| WP-003 | Dimension scoring DIM-01..13 (0–10) + rubric version record | REQ-006, SPEC-004, IF-003, PKG-003 | `crates/shield-score/**` | L0: `cargo test -p shield-score` / L1: workspace / L2: n/a | complete |
+| WP-004 | Tier T1–T4 classification + SLA conformance (DIM-13) + tier-SLA gap | REQ-014/015, SPEC-011/012, IF-004, PKG-004 | `crates/shield-tier/**`, `tiers.toml` | L0: `cargo test -p shield-tier` / L1: workspace / L2: n/a | complete |
+| WP-005 | Gap analysis: under-served-region finder + scale filter + null result | REQ-008/016, SPEC-006/013, PKG-005 | `crates/shield-gap/**` | L0: `cargo test -p shield-gap` / L1: workspace / L2: n/a | complete |
+| WP-006 | `shield` CLI: corpus/score/tier-sla/gap commands (incl. `--scale`) + reproducible artifacts | REQ-001, IF-006, PKG-006 | `crates/shield-cli/**` | L0: `cargo run -p shield-cli -- --help` / L1: workspace / L2: end-to-end demo | complete |
 
 ## Work Package Details
 
@@ -74,7 +74,7 @@ Git execution: branch `wp-001-network`; one commit `SHIELD: WP-001 facility/refe
 
 VTRACE-only closeout: set EVID-004/005/007 to passed; mark TRACE rows REQ-004/005/007 `implemented`; record pulse.
 
-Status: ready.
+Status: complete; repository state reverified 2026-07-31.
 
 ### WP-002: Corpus model, scale tags, schema, sources, labels
 
@@ -84,7 +84,7 @@ Parent: REQ-001/002/003/005/016, SPEC-002/003/009/013, IF-001/002, PKG-002.
 
 Product surfaces: `crates/shield-corpus/src/lib.rs` (`Scale` enum {International,National,Regional,Local}; `EvidenceLabel` enum; `DemandBasis` enum {Surge,Baseline}; `Quantity { value, unit, label, source_id }`; `CorpusEntry { id, type, scale, jurisdiction, tier, sla, quantities, scores }`; load/validate from markdown+frontmatter; `validate()` → held/rejected reasons incl. missing scale); `corpus/SCHEMA.md` (IF-001 incl. scale enum); `data/sources.md` (IF-002) with seed entries for HRSA HPSA/MUA, CMS Provider of Services and Care Compare, AHA Annual Survey where public, Census/ACS demographics and insurance, CDC PLACES, County Health Rankings, and Dartmouth Atlas HRR/HSA.
 
-Exit criteria: `cargo test -p shield-corpus` green (missing-id reject, uncited quantity held, **missing-scale held**, label preservation — CR-007); `proof check .` clean. Boundary PKG-002 (depends on PKG-001 types). Git: `wp-002-corpus`. Status: blocked by WP-001.
+Exit criteria: `cargo test -p shield-corpus` green (missing-id reject, uncited quantity held, **missing-scale held**, label preservation — CR-007); `proof check .` clean. Boundary PKG-002 (depends on PKG-001 types). Git: `wp-002-corpus`. Status: complete; repository state reverified 2026-07-31.
 
 ### WP-003: Dimension scoring
 
@@ -94,7 +94,7 @@ Parent: REQ-006, SPEC-004, IF-003, PKG-003.
 
 Product surfaces: `crates/shield-score/src/lib.rs` (`Dimension` enum DIM-01..13, `Score(f64)` bounded `[0,10]`, `Rubric { version, weights }`, scoring trait over a `CorpusEntry`); default rubric v0 with recorded rationale (IF-003).
 
-Exit criteria: `cargo test -p shield-score` green; score-bounds invariant tested (CR-004); rubric version present. Boundary PKG-003 (depends on PKG-001/002). Git: `wp-003-score`. Status: blocked by WP-002.
+Exit criteria: `cargo test -p shield-score` green; score-bounds invariant tested (CR-004); rubric version present. Boundary PKG-003 (depends on PKG-001/002). Git: `wp-003-score`. Status: complete; repository state reverified 2026-07-31.
 
 ### WP-004: Tier classification + SLA conformance
 
@@ -104,7 +104,7 @@ Parent: REQ-014/015, SPEC-011/012, DIM-13, IF-004, PKG-004.
 
 Product surfaces: `crates/shield-tier/src/lib.rs` (`Tier { T1..T4 }`, `Sla { access_time, capacity, service_breadth, outcomes }` per tier, `classify(entry) -> Tier`, `conformance(entry, network) -> Dim13` naming the demand basis (REQ-007), `tier_sla_gap(entry) -> Option<Gap>`); `tiers.toml` SLA record (IF-004), values labelled provisional.
 
-Exit criteria: `cargo test -p shield-tier` green (classification, a conforming element, a shortfall producing a tier-SLA gap; SLA values labelled provisional). Boundary PKG-004 (depends on PKG-001/003). Git: `wp-004-tier`. Status: blocked by WP-003.
+Exit criteria: `cargo test -p shield-tier` green (classification, a conforming element, a shortfall producing a tier-SLA gap; SLA values labelled provisional). Boundary PKG-004 (depends on PKG-001/003). Git: `wp-004-tier`. Status: complete; repository state reverified 2026-07-31.
 
 ### WP-005: Gap analysis (scale-filtered)
 
@@ -114,7 +114,7 @@ Parent: REQ-008/016, SPEC-006/013, PKG-005.
 
 Product surfaces: `crates/shield-gap/src/lib.rs` (`GapRegion`, `find_gaps(corpus, rubric, scale) -> Vec<GapRegion>` filtering to a `Scale`, `null_result` path; cross-scale comparisons require an explicit marker; consume tier-SLA gaps from PKG-004).
 
-Exit criteria: `cargo test -p shield-gap` green (one found gap at a scale, one null/transfer-result case, and a test that elements of another scale are excluded unless a cross-scale marker is set — REQ-016). Boundary PKG-005 (depends on PKG-003/004). Git: `wp-005-gap`. Status: blocked by WP-004.
+Exit criteria: `cargo test -p shield-gap` green (one found gap at a scale, one null/transfer-result case, and a test that elements of another scale are excluded unless a cross-scale marker is set — REQ-016). Boundary PKG-005 (depends on PKG-003/004). Git: `wp-005-gap`. Status: complete; repository state reverified 2026-07-31.
 
 ### WP-006: CLI orchestration
 
@@ -124,7 +124,7 @@ Parent: REQ-001, IF-006, PKG-006.
 
 Product surfaces: `crates/shield-cli/src/main.rs` (clap subcommands + `--scale`; reads corpus, runs score/tier/gap, writes artifacts; `--help` documents the product surface; no VTRACE subcommands).
 
-Exit criteria: `cargo run -p shield-cli -- --help` lists product subcommands and the `--scale` flag; end-to-end run on a seed corpus at a chosen scale regenerates artifacts deterministically (CR-008); `cargo test --workspace` green. Boundary PKG-006 (depends on all). Git: `wp-006-cli`. Status: blocked by WP-005.
+Exit criteria: `cargo run -p shield-cli -- --help` lists product subcommands and the `--scale` flag; end-to-end run on a seed corpus at a chosen scale regenerates artifacts deterministically (CR-008); `cargo test --workspace` green. Boundary PKG-006 (depends on all). Git: `wp-006-cli`. Status: complete; repository state reverified 2026-07-31.
 
 ## Orphan Check
 

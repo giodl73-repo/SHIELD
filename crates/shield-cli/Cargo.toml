@@ -11,3 +11,4 @@ shield-corpus = { path = "../shield-corpus" }
 shield-score = { path = "../shield-score" }
 shield-tier = { path = "../shield-tier" }
 shield-gap = { path = "../shield-gap" }
+shield-cms-access = { path = "../shield-cms-access" }

@@ -7,11 +7,13 @@ Work is organized into small waves and pulses.
 | Wave | Status | Scope |
 |---|---|---|
 | `2026-06-26-vtrace-foundation` | complete | VTRACE left-side baseline, 12 stages (MISSION → WORK_PACKAGES), pulses 01–12. |
-| `2026-06-26-shield-implementation` | planned | Build WP-001..006 bottom-up, one work package per pulse (pulses 01–06). No code until executed. |
+| `2026-06-26-shield-implementation` | complete | WP-001..006 product baseline; repository state reverified 2026-07-31. |
+| `2026-07-31-cms-hospital-footprint` | complete | First current CMS aggregate result and held HLT handoff (WP-007). |
 
 ## Active wave
 
-- `2026-06-26-shield-implementation` (all pulses defined; pending execution)
+- No active wave. The next slice requires a bounded official geography or
+  staffed-capacity source and a separately accepted work package.
 
 ## Protocol
 
