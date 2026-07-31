@@ -29,6 +29,8 @@ const MINNESOTA_STROKE_DRIVE_TIME_FIXTURE: &str =
     include_str!("../../../data/derived/minnesota-stroke-drive-time-2026-07.json");
 const NYC_EMS_RESPONSE_TIME_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-response-time-2025.json");
+const NYC_EMS_RESPONSE_DISTRIBUTION_TARGET_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-response-distribution-target-2025.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -2217,6 +2219,186 @@ pub fn nyc_ems_response_time_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsDistributionQueryCustody {
+    pub label: String,
+    pub select: String,
+    pub where_clause: String,
+    pub group_by: String,
+    pub order_by: String,
+    pub response_rows: u64,
+    pub response_bytes: u64,
+    pub response_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsDistributionRow {
+    pub events: u64,
+    pub p50_response_seconds: u64,
+    pub p90_response_seconds: u64,
+    pub p95_response_seconds: u64,
+    #[serde(default)]
+    pub at_or_below_360_seconds: Option<u64>,
+    #[serde(default)]
+    pub at_or_below_360_seconds_bps: Option<u64>,
+    pub at_or_below_600_seconds: u64,
+    pub at_or_below_600_seconds_bps: u64,
+    #[serde(default)]
+    pub over_600_seconds: Option<u64>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsOfficialBenchmark {
+    pub publisher: String,
+    pub report: String,
+    pub report_url: String,
+    pub pdf_bytes: u64,
+    pub pdf_sha256: String,
+    pub fy2025_life_threatening_ambulance_actual_seconds: u64,
+    pub fy2026_life_threatening_ambulance_target_seconds: u64,
+    pub fy2025_combined_ambulance_fire_actual_seconds: u64,
+    pub fy2026_combined_ambulance_fire_target_seconds: u64,
+    pub fy2025_segment_one_incidents: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsComparisonBoundaries {
+    pub same_geography: bool,
+    pub same_calendar_fiscal_time_basis: bool,
+    pub same_severity_scope: bool,
+    pub same_call_start_definition: bool,
+    pub same_arriving_unit_scope_proved: bool,
+    pub direct_target_comparison_ready: bool,
+    pub local_law_category_nine_als_under_ten_share_assessed: bool,
+    pub patient_outcomes_joined: bool,
+    pub causal_explanation_ready: bool,
+    pub adequacy_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsResponseDistributionTarget {
+    pub dispatch_source: NycEmsSource,
+    pub query_custody: Vec<NycEmsDistributionQueryCustody>,
+    pub distribution_method: String,
+    pub citywide_severity_one: NycEmsDistributionRow,
+    pub borough_severity_one: BTreeMap<String, NycEmsDistributionRow>,
+    pub official_benchmark: NycEmsOfficialBenchmark,
+    pub comparison_boundaries: NycEmsComparisonBoundaries,
+}
+
+impl NycEmsResponseDistributionTarget {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let borough_sum: u64 = self
+            .borough_severity_one
+            .values()
+            .map(|row| row.events)
+            .sum();
+        let under_ten_sum: u64 = self
+            .borough_severity_one
+            .values()
+            .map(|row| row.at_or_below_600_seconds)
+            .sum();
+        let city = &self.citywide_severity_one;
+        let rounded_bps = (city.at_or_below_600_seconds * 10_000 + city.events / 2) / city.events;
+        if self.query_custody.len() != 2
+            || self.query_custody.iter().any(|query| {
+                query.response_rows == 0
+                    || query.response_bytes == 0
+                    || query.response_sha256.len() != 64
+            })
+            || borough_sum != city.events
+            || under_ten_sum != city.at_or_below_600_seconds
+            || city.at_or_below_600_seconds + city.over_600_seconds.unwrap_or_default()
+                != city.events
+            || rounded_bps != city.at_or_below_600_seconds_bps
+            || city.p50_response_seconds > city.p90_response_seconds
+            || city.p90_response_seconds > city.p95_response_seconds
+            || self.official_benchmark.pdf_bytes == 0
+            || self.official_benchmark.pdf_sha256.len() != 64
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS response distribution does not reconcile".to_string(),
+            ));
+        }
+        for row in self.borough_severity_one.values() {
+            let bps = (row.at_or_below_600_seconds * 10_000 + row.events / 2) / row.events;
+            if row.p50_response_seconds > row.p90_response_seconds
+                || row.p90_response_seconds > row.p95_response_seconds
+                || bps != row.at_or_below_600_seconds_bps
+            {
+                return Err(AccessError::Invariant(
+                    "NYC EMS borough distribution does not reconcile".to_string(),
+                ));
+            }
+        }
+        let boundary = &self.comparison_boundaries;
+        if !boundary.same_geography
+            || boundary.same_calendar_fiscal_time_basis
+            || boundary.same_severity_scope
+            || boundary.same_call_start_definition
+            || boundary.same_arriving_unit_scope_proved
+            || boundary.direct_target_comparison_ready
+            || boundary.local_law_category_nine_als_under_ten_share_assessed
+            || boundary.patient_outcomes_joined
+            || boundary.causal_explanation_ready
+            || boundary.adequacy_ready
+            || boundary.candidate_ready
+            || boundary.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS benchmark compatibility boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_response_distribution_target_fixture(
+) -> Result<NycEmsResponseDistributionTarget, AccessError> {
+    let result: NycEmsResponseDistributionTarget =
+        serde_json::from_str(NYC_EMS_RESPONSE_DISTRIBUTION_TARGET_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_response_distribution_target_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_response_distribution_target_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-response-distribution-target.v1",
+        "source":{"dispatch":result.dispatch_source,"official_benchmark":result.official_benchmark},
+        "query_custody":result.query_custody,
+        "method":result.distribution_method,
+        "citywide_severity_one":result.citywide_severity_one,
+        "borough_severity_one":result.borough_severity_one,
+        "comparison_boundaries":result.comparison_boundaries,
+        "interpretation":{"allowed":"nearest-rank response-time percentiles and threshold shares reconstructed from exact aggregate frequency counts, plus separately reported official MMR actuals and targets","boundary":"the dispatch distribution and MMR benchmark share geography but not time basis, severity scope, call-start definition, or proved arriving-unit scope","held":"a direct target comparison, Local Law Category 9 ALS compliance, patient outcomes, causal explanation, adequacy, candidates, effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_response_distribution_target_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_response_distribution_target_fixture()?;
+    let city = &result.citywide_severity_one;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-response-distribution-target-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"New York City with borough-level severity-one dispatch aggregates","population_or_network":"FDNY EMS dispatch incidents","ownership":"Fire Department of New York City and NYC Mayor's Office of Operations","time_basis":"calendar 2025 dispatch distribution plus separately grained FY2025 actual and FY2026 target","unit_basis":"incidents, nearest-rank seconds, threshold shares, and separately reported MMR seconds","included":"severity-one response distribution, borough tails, and official target context","excluded":"stored incident rows, direct target comparison, ALS Category 9 compliance, actual patient condition, outcomes, population rates, causal explanation, adequacy, candidate, effects, and costs"},
+        "source_custody":{"source_id":"NYC-FDNY-EMS-DISTRIBUTION-TARGET-2025","publisher":"FDNY and NYC Mayor's Office of Operations","source_path_or_url":result.official_benchmark.report_url,"vintage":"calendar 2025 / FY2025 actual / FY2026 target","capture_status":"two exact aggregate API frequency responses and exact official PMMR PDF custody","checksum_or_null":result.official_benchmark.pdf_sha256},
+        "problem":{"baseline_metric":"calendar-2025 severity-one nearest-rank incident-creation-to-first-unit-on-scene response distribution","baseline_value_or_null":city.p90_response_seconds,"affected_population_or_exposure_or_null":city.events,"problem_boundary":"the 650-second p90 and 86.86% at-or-below-600-second share describe this dispatch extract only and cannot be scored against the separately defined MMR targets","p50_response_seconds":city.p50_response_seconds,"p90_response_seconds":city.p90_response_seconds,"p95_response_seconds":city.p95_response_seconds,"at_or_below_600_seconds":city.at_or_below_600_seconds,"at_or_below_600_seconds_bps":city.at_or_below_600_seconds_bps,"over_600_seconds":city.over_600_seconds,"borough":result.borough_severity_one,"official_benchmark":result.official_benchmark},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no dispatch, call-taking, posting, staffing, fleet, routing, hospital, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"definition mismatch, incident validity, priority and call mix, call-taking interval, unit scope, traffic, weather, held incidents, concurrent demand, destination, patient condition, and outcomes remain unresolved","transferability_boundary":"NYC distribution and MMR targets do not establish another jurisdiction or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"NYC response distribution and separately defined official benchmark context only","netting_rule":"operational distributions and unmatched targets cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"local EMS distribution observation plus unmatched target context","peer_goal_basis":null,"evaluation_horizons":"annual dispatch and MMR refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"threshold summaries expose tails but do not identify causes, patient harm, or feasible remedies","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add incidents to other EMS, ED, inpatient, or unique-patient counts","observation_cadence":"FDNY OpenData and MMR update","reopen_triggers":"definition-compatible target or Local Law report extract, population/outcome join, operational drivers, candidate design, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on FDNY OpenData or MMR update"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"TRN RUR","non_additivity_rule":"response distributions are shared operational context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"distribution_ready":true,"borough_tail_context_ready":true,"official_target_context_ready":true,"direct_target_comparison_ready":result.comparison_boundaries.direct_target_comparison_ready,"als_category_nine_compliance_ready":result.comparison_boundaries.local_law_category_nine_als_under_ten_share_assessed,"outcome_ready":result.comparison_boundaries.patient_outcomes_joined,"adequacy_ready":result.comparison_boundaries.adequacy_ready,"candidate_bounded":result.comparison_boundaries.candidate_ready,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.comparison_boundaries.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"distribution_claim_allowed":true,"official_target_context_allowed":true,"target_miss_claim_allowed":false,"als_compliance_claim_allowed":false,"causal_claim_allowed":false,"adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2826,6 +3008,57 @@ mod tests {
         assert_eq!(output["readiness"]["scene_to_hospital_time_ready"], false);
         assert_eq!(output["readiness"]["adequacy_ready"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_response_distribution_reconciles_city_and_borough_tails() {
+        let result = load_nyc_ems_response_distribution_target_fixture().unwrap();
+        assert_eq!(result.citywide_severity_one.events, 27_540);
+        assert_eq!(result.citywide_severity_one.p50_response_seconds, 366);
+        assert_eq!(result.citywide_severity_one.p90_response_seconds, 650);
+        assert_eq!(result.citywide_severity_one.p95_response_seconds, 792);
+        assert_eq!(result.citywide_severity_one.at_or_below_600_seconds, 23_922);
+        assert_eq!(
+            result.citywide_severity_one.at_or_below_600_seconds_bps,
+            8_686
+        );
+        assert_eq!(result.citywide_severity_one.over_600_seconds, Some(3_618));
+    }
+
+    #[test]
+    fn nyc_ems_official_target_is_preserved_but_not_forced_onto_extract() {
+        let result = load_nyc_ems_response_distribution_target_fixture().unwrap();
+        assert_eq!(
+            result
+                .official_benchmark
+                .fy2026_life_threatening_ambulance_target_seconds,
+            415
+        );
+        assert_eq!(
+            result.official_benchmark.fy2025_segment_one_incidents,
+            28_320
+        );
+        assert!(!result.comparison_boundaries.same_calendar_fiscal_time_basis);
+        assert!(!result.comparison_boundaries.same_severity_scope);
+        assert!(!result.comparison_boundaries.same_call_start_definition);
+        assert!(!result.comparison_boundaries.direct_target_comparison_ready);
+    }
+
+    #[test]
+    fn nyc_ems_response_distribution_pack_holds_adequacy_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nyc_ems_response_distribution_target_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(output["readiness"]["distribution_ready"], true);
+        assert_eq!(output["readiness"]["official_target_context_ready"], true);
+        assert_eq!(output["readiness"]["direct_target_comparison_ready"], false);
+        assert_eq!(output["readiness"]["adequacy_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(
+            output["claim_boundaries"]["target_miss_claim_allowed"],
+            false
+        );
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }
 }

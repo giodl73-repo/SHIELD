@@ -21,12 +21,13 @@ Work is organized into small waves and pulses.
 | `2026-07-31-nemsis-ems-destination` | complete | NEMSIS national 911 EMS destination and incident-urbanicity spine with restricted geography and travel time held (WP-017). |
 | `2026-07-31-minnesota-stroke-drive-time` | complete | Current Minnesota designated-stroke-hospital modeled drive-time coverage, with actual EMS trips and substate inference held (WP-018). |
 | `2026-07-31-nyc-ems-response-time` | complete | Calendar-2025 FDNY incident-to-scene and assignment-to-scene means, with patient condition, outcomes, adequacy, and fiscal claims held (WP-019). |
+| `2026-07-31-nyc-ems-response-distribution-target` | complete | Severity-1 response tails and separately defined official MMR targets, with direct comparison, adequacy, and fiscal claims held (WP-020). |
 
 ## Active wave
 
-- No active wave. The next NYC slice requires response-time percentiles, an
-  accepted target, compatible population denominators, and outcome evidence in
-  a separately accepted work package.
+- No active wave. The next NYC slice requires a definition-compatible Local Law
+  119 or MMR extract, then population denominators and outcomes in a separately
+  accepted work package.
 
 ## Protocol
 

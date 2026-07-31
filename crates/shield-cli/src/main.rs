@@ -62,6 +62,10 @@ enum Commands {
     NycEmsResponseTimeBaseline,
     /// Emit the non-authoritative NYC EMS response-time HLT pack.
     NycEmsResponseTimeHeldPack,
+    /// Reproduce NYC severity-one response tails and unmatched target context.
+    NycEmsResponseDistributionTargetBaseline,
+    /// Emit the non-authoritative NYC response-distribution HLT pack.
+    NycEmsResponseDistributionTargetHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -172,6 +176,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             shield_cms_access::nyc_ems_response_time_held_pack_json()?
         ),
+        Commands::NycEmsResponseDistributionTargetBaseline => println!(
+            "{}",
+            shield_cms_access::nyc_ems_response_distribution_target_baseline_json()?
+        ),
+        Commands::NycEmsResponseDistributionTargetHeldPack => println!(
+            "{}",
+            shield_cms_access::nyc_ems_response_distribution_target_held_pack_json()?
+        ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
             let entry = shield_corpus::CorpusEntry::from_markdown(&text)?;
@@ -265,5 +277,13 @@ mod tests {
         assert!(Cli::try_parse_from(["shield", "minnesota-stroke-drive-time-held-pack"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "nyc-ems-response-time-baseline"]).is_ok());
         assert!(Cli::try_parse_from(["shield", "nyc-ems-response-time-held-pack"]).is_ok());
+        assert!(
+            Cli::try_parse_from(["shield", "nyc-ems-response-distribution-target-baseline"])
+                .is_ok()
+        );
+        assert!(
+            Cli::try_parse_from(["shield", "nyc-ems-response-distribution-target-held-pack"])
+                .is_ok()
+        );
     }
 }

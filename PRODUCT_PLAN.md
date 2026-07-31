@@ -59,6 +59,10 @@ where infrastructure methods do not transfer cleanly.
   incidents and 1,510,191 valid response-time events, with severity-1 means by
   borough and exact API-query custody, while holding patient condition,
   percentiles, targets, outcomes, causal, adequacy, and national claims.
+- A severity-1 response distribution with a 366-second median, 650-second p90,
+  792-second p95, and 86.86% at or below ten minutes, plus separately grained
+  official MMR targets that cannot be forced onto the extract because time,
+  severity, call-start, and arriving-unit definitions do not reconcile.
 
 ## Next work
 
@@ -66,15 +70,16 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add response-time percentiles, an accepted service target, compatible
-   population denominators, and outcome evidence before testing an NYC access
-   or delivery intervention.
-2. Add machine-readable substate emergency access coverage or publicly usable
+1. Acquire a definition-compatible Local Law 119 or MMR extract that can test
+   target compliance, including ALS Category 9 where applicable.
+2. Add compatible population denominators and outcome evidence before testing
+   an NYC access or delivery intervention.
+3. Add machine-readable substate emergency access coverage or publicly usable
    patient flow linking incident origins to service locations elsewhere.
-3. Keep county class, formal shortage designation, facility presence, available
+4. Keep county class, formal shortage designation, facility presence, available
    bed use, staffed
    service availability, and patient-relevant travel access distinct.
-4. Test a specific HLT candidate against access, quality/safety, equity,
+5. Test a specific HLT candidate against access, quality/safety, equity,
    adequacy/resilience, cost, and delivery evidence before any fiscal admission.
 
 ## Non-goals

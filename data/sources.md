@@ -283,3 +283,29 @@ patient's actual condition. Specific locations are removed, and SHIELD stores
 no incident rows. Arithmetic means do not establish tails or targets; the
 source does not establish scene-to-hospital time, outcomes, population rates,
 causes, adequacy, candidates, costs, or savings.
+
+## NYC-FDNY-EMS-DISTRIBUTION-TARGET-2025
+
+- Dispatch publisher/dataset: FDNY / NYC OpenData EMS Incident Dispatch Data
+- Dispatch landing page: <https://data.cityofnewyork.us/d/76xm-jjuj>
+- Severity-1 citywide frequency response rows / bytes / SHA-256: 1,491 / 80,071 / `deb05f69e2d5a8bd239170d277527332974226f9a27a1ec535054730822d7445`
+- Severity-1 borough frequency response rows / bytes / SHA-256: 4,504 / 340,061 / `59d87fdcea0beeb7347b265110ef76d3ad8cf62ea5c9ae008616acc567b7be41`
+- Benchmark publisher: New York City Mayor's Office of Operations
+- Report: Preliminary Fiscal 2026 Mayor's Management Report
+- Report URL: <https://www.nyc.gov/assets/operations/downloads/pdf/pmmr2026/2026_pmmr.pdf>
+- PDF bytes / SHA-256: 12,213,302 / `cdc002703628fbb71ae8b934c9a27654e13ace444b8300669e22792bd2b55f2f`
+- Definitions: <https://www.nyc.gov/site/911reporting/reports/definitions.page>
+- Derived fixture: `data/derived/nyc-ems-response-distribution-target-2025.json`
+
+Nearest-rank reconstruction from exact integer-second frequency counts gives a
+366-second median, 650-second p90, and 792-second p95 across 27,540 valid
+calendar-2025 severity-1 records. Of those, 23,922 (86.86%) are at or below 600
+seconds and 3,618 are above. Borough p90 values range from 593 to 698 seconds.
+
+The official PMMR separately reports an FY2025 life-threatening-ambulance
+average of 8:49 and FY2026 target of 6:55, plus a combined ambulance/fire
+FY2025 average of 7:45 and target of 6:00. Direct comparison is blocked: the
+surfaces differ on calendar versus fiscal year, severity 1 versus Segment 1–3,
+incident creation versus call receipt, and unproved arriving-unit scope. The
+derived at-or-below-ten-minute share is not Local Law Category 9, which is an
+ALS-unit measure for qualifying ALS emergencies.

@@ -1,0 +1,82 @@
+{
+  "dispatch_source": {
+    "publisher": "Fire Department of New York City",
+    "portal": "NYC OpenData",
+    "dataset_title": "EMS Incident Dispatch Data",
+    "dataset_id": "76xm-jjuj",
+    "landing_page": "https://data.cityofnewyork.us/d/76xm-jjuj",
+    "api_endpoint": "https://data.cityofnewyork.us/resource/76xm-jjuj.json",
+    "rows_updated": "2026-07-15T20:06:55Z",
+    "captured": "2026-07-31",
+    "data_dictionary_filename": "EMS_incident_dispatch_data_description.xlsx",
+    "data_dictionary_bytes": 22388,
+    "data_dictionary_sha256": "ccf797381643e39ebcd652892c730ab180bd751bedd9519b4cd9afc0e374a9de"
+  },
+  "query_custody": [
+    {
+      "label": "cy2025_valid_severity1_response_seconds_distribution",
+      "select": "incident_response_seconds_qy,count(*) as events",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59' and valid_incident_rspns_time_indc='Y' and final_severity_level_code='1'",
+      "group_by": "incident_response_seconds_qy",
+      "order_by": "incident_response_seconds_qy",
+      "response_rows": 1491,
+      "response_bytes": 80071,
+      "response_sha256": "deb05f69e2d5a8bd239170d277527332974226f9a27a1ec535054730822d7445"
+    },
+    {
+      "label": "cy2025_valid_severity1_borough_response_seconds_distribution",
+      "select": "borough,incident_response_seconds_qy,count(*) as events",
+      "where_clause": "incident_datetime between '2025-01-01T00:00:00' and '2025-12-31T23:59:59' and valid_incident_rspns_time_indc='Y' and final_severity_level_code='1'",
+      "group_by": "borough,incident_response_seconds_qy",
+      "order_by": "borough,incident_response_seconds_qy",
+      "response_rows": 4504,
+      "response_bytes": 340061,
+      "response_sha256": "59d87fdcea0beeb7347b265110ef76d3ad8cf62ea5c9ae008616acc567b7be41"
+    }
+  ],
+  "distribution_method": "nearest-rank percentiles reconstructed from exact integer response-second frequency counts",
+  "citywide_severity_one": {
+    "events": 27540,
+    "p50_response_seconds": 366,
+    "p90_response_seconds": 650,
+    "p95_response_seconds": 792,
+    "at_or_below_360_seconds": 13393,
+    "at_or_below_360_seconds_bps": 4863,
+    "at_or_below_600_seconds": 23922,
+    "at_or_below_600_seconds_bps": 8686,
+    "over_600_seconds": 3618
+  },
+  "borough_severity_one": {
+    "BRONX": {"events": 5851, "p50_response_seconds": 387, "p90_response_seconds": 690, "p95_response_seconds": 857, "at_or_below_600_seconds": 4933, "at_or_below_600_seconds_bps": 8431},
+    "BROOKLYN": {"events": 8096, "p50_response_seconds": 346, "p90_response_seconds": 593, "p95_response_seconds": 715, "at_or_below_600_seconds": 7321, "at_or_below_600_seconds_bps": 9043},
+    "MANHATTAN": {"events": 5713, "p50_response_seconds": 337, "p90_response_seconds": 633, "p95_response_seconds": 805, "at_or_below_600_seconds": 5037, "at_or_below_600_seconds_bps": 8817},
+    "QUEENS": {"events": 6374, "p50_response_seconds": 398, "p90_response_seconds": 698, "p95_response_seconds": 842, "at_or_below_600_seconds": 5300, "at_or_below_600_seconds_bps": 8315},
+    "RICHMOND / STATEN ISLAND": {"events": 1506, "p50_response_seconds": 372, "p90_response_seconds": 621, "p95_response_seconds": 733, "at_or_below_600_seconds": 1331, "at_or_below_600_seconds_bps": 8838}
+  },
+  "official_benchmark": {
+    "publisher": "New York City Mayor's Office of Operations",
+    "report": "Preliminary Fiscal 2026 Mayor's Management Report",
+    "report_url": "https://www.nyc.gov/assets/operations/downloads/pdf/pmmr2026/2026_pmmr.pdf",
+    "pdf_bytes": 12213302,
+    "pdf_sha256": "cdc002703628fbb71ae8b934c9a27654e13ace444b8300669e22792bd2b55f2f",
+    "fy2025_life_threatening_ambulance_actual_seconds": 529,
+    "fy2026_life_threatening_ambulance_target_seconds": 415,
+    "fy2025_combined_ambulance_fire_actual_seconds": 465,
+    "fy2026_combined_ambulance_fire_target_seconds": 360,
+    "fy2025_segment_one_incidents": 28320
+  },
+  "comparison_boundaries": {
+    "same_geography": true,
+    "same_calendar_fiscal_time_basis": false,
+    "same_severity_scope": false,
+    "same_call_start_definition": false,
+    "same_arriving_unit_scope_proved": false,
+    "direct_target_comparison_ready": false,
+    "local_law_category_nine_als_under_ten_share_assessed": false,
+    "patient_outcomes_joined": false,
+    "causal_explanation_ready": false,
+    "adequacy_ready": false,
+    "candidate_ready": false,
+    "taxlane_admission_ready": false
+  }
+}
