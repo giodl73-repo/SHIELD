@@ -9,6 +9,8 @@ const RURALITY_FIXTURE: &str =
     include_str!("../../../data/derived/cms-usda-rurality-join-2026-05-13.json");
 const HRSA_FIXTURE: &str =
     include_str!("../../../data/derived/hrsa-primary-care-hpsa-census-2026-07-31.json");
+const HRSA_GEOGRAPHY_FIXTURE: &str =
+    include_str!("../../../data/derived/hrsa-primary-care-geography-bridge-2026-07-31.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -522,6 +524,181 @@ pub fn hrsa_primary_care_held_pack_json() -> Result<String, AccessError> {
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct GeographyComponentClass {
+    pub code: String,
+    pub component_rows: u64,
+    pub designation_ids: u64,
+    pub single_component_ids: u64,
+    pub multi_component_ids: u64,
+    pub single_county_ids: u64,
+    pub multi_county_ids: u64,
+    pub maximum_components_per_designation: u64,
+    pub distinct_valid_county_fips: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct HrsaPrimaryCareGeographyBridge {
+    pub csv_download_url: String,
+    pub csv_created: String,
+    pub csv_bytes: u64,
+    pub csv_sha256: String,
+    pub designated_component_rows: u64,
+    pub designated_hpsa_ids: u64,
+    pub area_designation_rows: u64,
+    pub area_designation_ids: u64,
+    pub facility_designation_rows: u64,
+    pub facility_designation_ids: u64,
+    pub area_single_component_ids: u64,
+    pub area_multi_component_ids: u64,
+    pub area_single_county_ids: u64,
+    pub area_multi_county_ids: u64,
+    pub area_distinct_valid_county_fips: u64,
+    pub component_classes: BTreeMap<String, GeographyComponentClass>,
+    pub valid_common_county_rows: u64,
+    pub valid_common_county_designation_ids: u64,
+    pub distinct_valid_common_county_fips: u64,
+    pub facility_valid_common_county_rows: u64,
+    pub facility_valid_common_county_designation_ids: u64,
+    pub facility_distinct_valid_common_county_fips: u64,
+    pub geography_residual_rows: u64,
+    pub geography_residual_designation_ids: u64,
+    pub placeholder_common_county_rows: u64,
+    pub state_prefix_inconsistent_rows: u64,
+    pub area_geography_residual_rows: u64,
+    pub facility_geography_residual_rows: u64,
+    pub designation_component_type_mixed_ids: u64,
+    pub cms_facility_join_ready: bool,
+    pub patient_access_ready: bool,
+}
+
+impl HrsaPrimaryCareGeographyBridge {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let census = load_hrsa_primary_care_fixture()?;
+        let designated = &census.status_counts["Designated"];
+        if self.designated_component_rows != designated.component_rows
+            || self.designated_hpsa_ids != designated.unique_designations
+            || self.csv_sha256 != census.csv_sha256
+        {
+            return Err(AccessError::Invariant(
+                "geography bridge does not match the same-vintage registry census".to_string(),
+            ));
+        }
+        if self.area_designation_rows + self.facility_designation_rows
+            != self.designated_component_rows
+            || self.area_designation_ids + self.facility_designation_ids != self.designated_hpsa_ids
+        {
+            return Err(AccessError::Invariant(
+                "area and facility geography partitions do not reconcile".to_string(),
+            ));
+        }
+        let class_rows: u64 = self
+            .component_classes
+            .values()
+            .map(|class| class.component_rows)
+            .sum();
+        let class_ids: u64 = self
+            .component_classes
+            .values()
+            .map(|class| class.designation_ids)
+            .sum();
+        if class_rows != self.area_designation_rows || class_ids != self.area_designation_ids {
+            return Err(AccessError::Invariant(
+                "area component classes do not reconcile".to_string(),
+            ));
+        }
+        for (name, class) in &self.component_classes {
+            if class.single_component_ids + class.multi_component_ids != class.designation_ids
+                || class.single_county_ids + class.multi_county_ids != class.designation_ids
+            {
+                return Err(AccessError::Invariant(format!(
+                    "{name} designation partitions do not reconcile"
+                )));
+            }
+        }
+        if self.area_single_component_ids + self.area_multi_component_ids
+            != self.area_designation_ids
+            || self.area_single_county_ids + self.area_multi_county_ids != self.area_designation_ids
+        {
+            return Err(AccessError::Invariant(
+                "area component or county partitions do not reconcile".to_string(),
+            ));
+        }
+        if self.valid_common_county_rows + self.geography_residual_rows
+            != self.designated_component_rows
+            || self.valid_common_county_designation_ids + self.geography_residual_designation_ids
+                != self.designated_hpsa_ids
+            || self.placeholder_common_county_rows + self.state_prefix_inconsistent_rows
+                != self.geography_residual_rows
+            || self.area_geography_residual_rows + self.facility_geography_residual_rows
+                != self.geography_residual_rows
+        {
+            return Err(AccessError::Invariant(
+                "valid geography and residual partitions do not reconcile".to_string(),
+            ));
+        }
+        if self.facility_valid_common_county_rows + self.facility_geography_residual_rows
+            != self.facility_designation_rows
+            || self.facility_valid_common_county_designation_ids
+                + self.geography_residual_designation_ids
+                != self.facility_designation_ids
+        {
+            return Err(AccessError::Invariant(
+                "facility geography partition does not reconcile".to_string(),
+            ));
+        }
+        if self.designation_component_type_mixed_ids != 0
+            || self.cms_facility_join_ready
+            || self.patient_access_ready
+        {
+            return Err(AccessError::Invariant(
+                "geography bridge must not imply a facility join or access result".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_hrsa_geography_fixture() -> Result<HrsaPrimaryCareGeographyBridge, AccessError> {
+    let result: HrsaPrimaryCareGeographyBridge = serde_json::from_str(HRSA_GEOGRAPHY_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn hrsa_geography_baseline_json() -> Result<String, AccessError> {
+    let result = load_hrsa_geography_fixture()?;
+    Ok(serde_json::to_string_pretty(&json!({
+        "schema":"shield.hrsa-primary-care-geography-bridge.v1",
+        "source":{"url":result.csv_download_url,"created":result.csv_created,"bytes":result.csv_bytes,"sha256":result.csv_sha256},
+        "registry":{"designated_component_rows":result.designated_component_rows,"designated_hpsa_ids":result.designated_hpsa_ids},
+        "area_designations":{"component_rows":result.area_designation_rows,"designation_ids":result.area_designation_ids,"single_component_ids":result.area_single_component_ids,"multi_component_ids":result.area_multi_component_ids,"single_county_ids":result.area_single_county_ids,"multi_county_ids":result.area_multi_county_ids,"distinct_valid_county_fips":result.area_distinct_valid_county_fips,"component_classes":result.component_classes},
+        "facility_designations":{"component_rows":result.facility_designation_rows,"designation_ids":result.facility_designation_ids,"valid_common_county_ids":result.facility_valid_common_county_designation_ids,"distinct_valid_common_county_fips":result.facility_distinct_valid_common_county_fips},
+        "county_key":{"valid_rows":result.valid_common_county_rows,"valid_designation_ids":result.valid_common_county_designation_ids,"distinct_valid_fips":result.distinct_valid_common_county_fips,"residual_rows":result.geography_residual_rows,"residual_designation_ids":result.geography_residual_designation_ids,"placeholder_rows":result.placeholder_common_county_rows,"state_prefix_inconsistent_rows":result.state_prefix_inconsistent_rows},
+        "interpretation":{"allowed":"same-vintage designation-to-component-to-county-key structure and explicit geography residual","boundary":"Single County, Census Tract, County Subdivision, and facility/unknown component classes remain distinct; a county key is context, not whole-county coverage.","held":"CMS hospital join, facility equivalence, whole-county shortage, unique population, patient access, staffed capacity, adequacy, effects, costs, and savings"}
+    }))?)
+}
+
+pub fn hrsa_geography_held_pack_json() -> Result<String, AccessError> {
+    let result = load_hrsa_geography_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:hrsa-primary-care-geography-bridge-2026-07-31:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"HRSA primary-care HPSA designation components and common county keys","population_or_network":"current geographic, population-group, and facility shortage designations","ownership":"HRSA Bureau of Health Workforce designation system","time_basis":"daily CSV created 2026-07-31","unit_basis":"component rows, unique HPSA IDs, component classes, and validated five-character common county FIPS keys","included":"same-vintage designation-component geography structure and residual","excluded":"CMS hospital join, whole-county shortage, unique people, access, capacity, adequacy, candidates, costs, and effects"},
+        "source_custody":{"source_id":"HRSA-BCD_HPSA_FCT_DET_PC-2026-07-31","publisher":"Health Resources and Services Administration","source_path_or_url":result.csv_download_url,"vintage":result.csv_created,"capture_status":"derived aggregate with same-vintage component-class, county-key, and residual invariants","checksum_or_null":result.csv_sha256},
+        "problem":{"baseline_metric":"current primary-care HPSA geography structure","baseline_value_or_null":result.designated_hpsa_ids,"affected_population_or_exposure_or_null":null,"problem_boundary":"county keys locate components but do not make tract, subdivision, population-group, or facility designations whole-county findings","area_designation_ids":result.area_designation_ids,"facility_designation_ids":result.facility_designation_ids,"multi_component_area_ids":result.area_multi_component_ids,"multi_county_area_ids":result.area_multi_county_ids,"valid_county_key_ids":result.valid_common_county_designation_ids,"geography_residual_ids":result.geography_residual_designation_ids},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no HPSA, workforce, facility, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"partial-area components, multi-county designations, facility identity, population overlap, and 18 geography residuals remain material","transferability_boundary":"a designation-component county key does not establish hospital access, staffed services, quality, or outcomes"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"hospital_level_shortage":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"not established","netting_rule":"geography and designation counts cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"same-vintage geography bridge only","peer_goal_basis":null,"evaluation_horizons":"daily source refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"geography is contextual until component coverage, compatible facility identity, access, capacity, and population overlap are resolved","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add components, counties, designations, or overlapping populations","observation_cadence":"daily source refresh","reopen_triggers":"compatible facility or staffed-capacity bridge plus bounded candidate, access, outcome, cost, incidence, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on HRSA registry release"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR ISF VET DEF","non_additivity_rule":"shared geography context is not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"geography_bridge_ready":true,"cms_facility_join_ready":result.cms_facility_join_ready,"candidate_bounded":false,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"whole_county_or_hospital_shortage_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -665,6 +842,55 @@ mod tests {
             output["service_floors"]["hospital_level_shortage"],
             serde_json::Value::Null
         );
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn hrsa_geography_bridge_reconciles_area_and_facility_grains() {
+        let result = load_hrsa_geography_fixture().unwrap();
+        assert_eq!(result.designated_hpsa_ids, 7_682);
+        assert_eq!(result.area_designation_ids, 2_838);
+        assert_eq!(result.facility_designation_ids, 4_844);
+        assert_eq!(result.area_multi_component_ids, 762);
+        assert_eq!(result.area_multi_county_ids, 155);
+    }
+
+    #[test]
+    fn hrsa_geography_bridge_preserves_component_classes() {
+        let result = load_hrsa_geography_fixture().unwrap();
+        assert_eq!(
+            result.component_classes["Single County"].designation_ids,
+            2_088
+        );
+        assert_eq!(
+            result.component_classes["Census Tract"].component_rows,
+            11_697
+        );
+        assert_eq!(
+            result.component_classes["County Subdivision"].designation_ids,
+            164
+        );
+        assert_eq!(result.designation_component_type_mixed_ids, 0);
+    }
+
+    #[test]
+    fn hrsa_geography_bridge_keeps_invalid_keys_visible() {
+        let result = load_hrsa_geography_fixture().unwrap();
+        assert_eq!(result.valid_common_county_designation_ids, 7_664);
+        assert_eq!(result.geography_residual_designation_ids, 18);
+        assert_eq!(result.placeholder_common_county_rows, 17);
+        assert_eq!(result.state_prefix_inconsistent_rows, 1);
+    }
+
+    #[test]
+    fn hrsa_geography_pack_does_not_promote_context_to_access_or_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&hrsa_geography_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["geography_bridge_ready"], true);
+        assert_eq!(output["readiness"]["cms_facility_join_ready"], false);
+        assert_eq!(output["service_floors"]["access"], serde_json::Value::Null);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
     }

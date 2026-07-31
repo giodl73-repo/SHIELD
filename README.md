@@ -113,6 +113,30 @@ designation populations can overlap. This result therefore establishes a
 formal shortage-registry spine without assigning shortage, access, capacity,
 adequacy, costs, or savings to any hospital or community.
 
+### Designation–component–geography bridge
+
+The same July 31 file now yields a geography bridge without flattening
+subcounty or facility designations into whole-county findings:
+
+| Current designation structure | HPSA IDs | Component rows | Multi-component IDs | Multi-county IDs |
+|---|---:|---:|---:|---:|
+| Single County components | 2,088 | 2,248 | 89 | 89 |
+| Census Tract components | 586 | 11,697 | 555 | 25 |
+| County Subdivision components | 164 | 1,579 | 118 | 41 |
+| **All area designations** | **2,838** | **15,524** | **762** | **155** |
+| Facility designations | 4,844 | 4,844 | 0 | 0 |
+
+All 15,524 area-component rows have internally consistent five-digit common
+county keys. Among facility designations, 4,826 do and 18 remain an explicit
+geography residual: 17 placeholder keys and one state-prefix inconsistency.
+Across both classes, 7,664 of 7,682 designation IDs have a validated common
+county key spanning 2,932 distinct codes.
+
+This bridge locates designation components; it does not assign a designation
+to a CMS hospital, turn a tract or subdivision finding into whole-county
+shortage, deduplicate affected people, or establish access, staffed capacity,
+need, or adequacy.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -154,6 +178,8 @@ cargo run -p shield-cli -- cms-rurality-baseline
 cargo run -p shield-cli -- cms-rurality-held-pack
 cargo run -p shield-cli -- hrsa-primary-care-baseline
 cargo run -p shield-cli -- hrsa-primary-care-held-pack
+cargo run -p shield-cli -- hrsa-geography-baseline
+cargo run -p shield-cli -- hrsa-geography-held-pack
 cargo test --workspace
 ```
 

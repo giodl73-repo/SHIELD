@@ -11,12 +11,12 @@ Work is organized into small waves and pulses.
 | `2026-07-31-cms-hospital-footprint` | complete | First current CMS aggregate result and held HLT handoff (WP-007). |
 | `2026-07-31-cms-usda-rurality` | complete | Exact county rurality join, visible residual, and held HLT handoff (WP-008). |
 | `2026-07-31-hrsa-primary-care-hpsa` | complete | Current primary-care HPSA registry census with separate quarterly benchmark and held HLT handoff (WP-009). |
+| `2026-07-31-hrsa-primary-care-geography` | complete | Same-vintage area/facility component-geography bridge with explicit county-key residual (WP-010). |
 
 ## Active wave
 
-- No active wave. The next slice requires a same-vintage
-  designation-component-geography bridge or compatible official
-  staffed-capacity source and a separately accepted work package.
+- No active wave. The next slice requires an explicit compatible facility
+  identity or staffed-capacity source and a separately accepted work package.
 
 ## Protocol
 

@@ -52,6 +52,13 @@ The file contains designation-component rows. SHIELD counts unique HPSA IDs
 within each status and does not treat rows as independent designations,
 hospitals, whole counties, or people. Designation populations can overlap.
 
+The same-vintage geography bridge validates `Common State County FIPS Code` as
+exactly five numeric characters whose state prefix equals `Common State FIPS
+Code`. It retains 20,350 valid current-designation rows and 18 facility-row
+residuals (17 placeholders and one state-prefix inconsistency). It does not
+repair those rows from alternate fields. The derived fixture is
+`data/derived/hrsa-primary-care-geography-bridge-2026-07-31.json`.
+
 ## HRSA-HPSA-QUARTERLY-2026-Q2
 
 - Publisher: Health Resources and Services Administration (HRSA)
