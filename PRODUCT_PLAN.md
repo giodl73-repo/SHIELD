@@ -47,6 +47,10 @@ where infrastructure methods do not transfer cleanly.
   hospital/beneficiary-ZIP pairs, with 5,902 exact same-year provider matches
   and 11,586,529 of 13,330,468 classified observable cases crossing a ZIP
   boundary, without treating inpatient flow as emergency access or travel time.
+- A 2024 NEMSIS national EMS destination spine covering 60,298,684 activations,
+  46,733,668 911 activations, and 30,123,274 destination-coded events, including
+  27,863,074 routed to hospital or freestanding emergency departments, while
+  preserving voluntary reporting and restricted public geography.
 
 ## Next work
 
@@ -54,8 +58,8 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Add patient-relevant travel time or emergency-specific patient-flow evidence
-   linking resident origins to service locations across county boundaries.
+1. Add patient-relevant travel time or publicly usable emergency-specific flow
+   linking incident origins to service locations across county boundaries.
 2. Add total-population demand and current emergency operations before testing
    a specific access or delivery intervention.
 3. Keep county class, formal shortage designation, facility presence, available

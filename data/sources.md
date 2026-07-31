@@ -219,3 +219,27 @@ The result observes inpatient discharge flow, not unique patients. Different
 ZIP does not establish county crossing, distance, travel time,
 emergency-department destination, reason for travel, burden, access failure,
 unmet need, or adequacy.
+
+## NEMSIS-EMS-DESTINATION-2024
+
+- Publisher: National Emergency Medical Services Information System Technical Assistance Center
+- Dataset: NEMSIS Data Report 2024
+- Landing page: <https://nemsis.org/using-ems-data/articles-and-publications/>
+- Report: <https://nemsis.org/wp-content/uploads/2025/09/NEMSIS-End-of-Year-Report-2024-9-24-25.pdf>
+- Supported by: National Highway Traffic Safety Administration Office of Emergency Medical Services
+- Created / captured: 2025-09-24 / 2026-07-31
+- PDF pages / bytes / SHA-256: 18 / 2,054,076 / `64acb775e9b16f49427371e8b71f0dcda5dba5ec84bb92e004e1149e1f949a84`
+- Derived fixture: `data/derived/nemsis-ems-destination-2024.json`
+
+The report records 60,298,684 EMS activations from 14,756 agencies across 54
+states and territories, including 46,733,668 911 activations. Its separately
+grained destination table contains 30,123,274 coded events: 27,706,728 to
+hospital emergency departments and 156,346 to freestanding emergency
+departments. Together those are 92.50% of destination-coded events.
+
+NEMSIS submissions are voluntary and activations are not unique patients. The
+report says incidents occurred in 99% of U.S. counties but a small number of
+remote counties did not contribute data. State/county/ZIP geographic
+identifiers are restricted on the public surface. Destination type therefore
+does not establish linked county flow, distance, travel time, local access,
+unmet need, or adequacy.

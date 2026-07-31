@@ -288,6 +288,27 @@ emergency-department destinations, reasons for travel, unique patients, burden,
 or access failure. Suppressed pairs remain suppressed. Emergency-specific flow,
 total-population demand, adequacy, candidates, costs, and savings remain held.
 
+### National EMS destination context
+
+The NEMSIS 2024 annual public data report adds a national 911/EMS routing
+surface:
+
+| EMS result | Count or value |
+|---|---:|
+| Total / 911 activations | 60,298,684 / 46,733,668 |
+| Reporting agencies / states and territories | 14,756 / 54 |
+| Destination-coded 911 events | 30,123,274 |
+| Hospital / freestanding ED destinations | 27,706,728 / 156,346 |
+| Combined ED destination share | 92.50% |
+| Rural / frontier incident-urbanicity events | 2,652,293 / 452,100 |
+
+This establishes that emergency departments dominate recorded 911 EMS
+destinations. It does not establish county origin-destination flow or travel
+time. NEMSIS submissions are voluntary, activations are not unique patients,
+table denominators differ, remote-county coverage is not complete, and public
+state/county/ZIP identifiers are restricted. Local access, need, adequacy,
+candidates, costs, and savings remain held.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -313,7 +334,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records

@@ -23,6 +23,8 @@ const CMS_COUNTY_EMERGENCY_DEMAND_FIXTURE: &str =
     include_str!("../../../data/derived/cms-county-emergency-demand-2024.json");
 const CMS_INPATIENT_ORIGIN_DESTINATION_FIXTURE: &str =
     include_str!("../../../data/derived/cms-inpatient-origin-destination-2024.json");
+const NEMSIS_EMS_DESTINATION_FIXTURE: &str =
+    include_str!("../../../data/derived/nemsis-ems-destination-2024.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -1817,6 +1819,131 @@ pub fn cms_inpatient_origin_destination_held_pack_json() -> Result<String, Acces
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NemsisDestinationSource {
+    pub publisher: String,
+    pub dataset_title: String,
+    pub landing_page: String,
+    pub report_url: String,
+    pub supported_by: String,
+    pub created: String,
+    pub captured: String,
+    pub pdf_pages: u64,
+    pub pdf_bytes: u64,
+    pub pdf_sha256: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NemsisEmsDestination {
+    pub source: NemsisDestinationSource,
+    pub year: u64,
+    pub total_activations: u64,
+    pub participating_states_and_territories: u64,
+    pub reporting_agencies: u64,
+    pub activations_in_911_surface: u64,
+    pub incident_county_coverage_percent: u64,
+    pub destination_coded_events: u64,
+    pub destination_counts: BTreeMap<String, u64>,
+    pub emergency_department_destination_events: u64,
+    pub emergency_department_destination_bps: u64,
+    pub transport_mode_coded_events: u64,
+    pub transport_mode_counts: BTreeMap<String, u64>,
+    pub incident_urbanicity_coded_events: u64,
+    pub incident_urbanicity_counts: BTreeMap<String, u64>,
+    pub voluntary_submission: bool,
+    pub activations_are_unique_patients: bool,
+    pub destination_total_is_all_911_activations: bool,
+    pub public_geographic_identifiers_available: bool,
+    pub county_origin_destination_observed: bool,
+    pub scene_to_destination_time_observed: bool,
+    pub travel_time_ready: bool,
+    pub geographic_access_ready: bool,
+    pub need_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+impl NemsisEmsDestination {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let destination_sum: u64 = self.destination_counts.values().sum();
+        let transport_mode_sum: u64 = self.transport_mode_counts.values().sum();
+        let urbanicity_sum: u64 = self.incident_urbanicity_counts.values().sum();
+        let ed_destinations = self.destination_counts["hospital_emergency_department"]
+            + self.destination_counts["freestanding_emergency_department"];
+        let rounded_bps = (ed_destinations * 10_000 + self.destination_coded_events / 2)
+            / self.destination_coded_events;
+        if destination_sum != self.destination_coded_events
+            || transport_mode_sum != self.transport_mode_coded_events
+            || urbanicity_sum != self.incident_urbanicity_coded_events
+            || ed_destinations != self.emergency_department_destination_events
+            || rounded_bps != self.emergency_department_destination_bps
+            || self.activations_in_911_surface > self.total_activations
+            || self.incident_county_coverage_percent > 100
+        {
+            return Err(AccessError::Invariant(
+                "NEMSIS EMS destination partitions do not reconcile".to_string(),
+            ));
+        }
+        if !self.voluntary_submission
+            || self.activations_are_unique_patients
+            || self.destination_total_is_all_911_activations
+            || self.public_geographic_identifiers_available
+            || self.county_origin_destination_observed
+            || self.scene_to_destination_time_observed
+            || self.travel_time_ready
+            || self.geographic_access_ready
+            || self.need_ready
+            || self.candidate_ready
+            || self.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NEMSIS EMS destination claim boundaries are not preserved".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nemsis_ems_destination_fixture() -> Result<NemsisEmsDestination, AccessError> {
+    let result: NemsisEmsDestination = serde_json::from_str(NEMSIS_EMS_DESTINATION_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nemsis_ems_destination_baseline_json() -> Result<String, AccessError> {
+    let result = load_nemsis_ems_destination_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nemsis-ems-destination.v1",
+        "source":result.source,
+        "identity":{"year":result.year,"total_activations":result.total_activations,"participating_states_and_territories":result.participating_states_and_territories,"reporting_agencies":result.reporting_agencies,"activations_in_911_surface":result.activations_in_911_surface,"incident_county_coverage_percent":result.incident_county_coverage_percent},
+        "destination":{"coded_events":result.destination_coded_events,"counts":result.destination_counts,"emergency_department_events":result.emergency_department_destination_events,"emergency_department_bps":result.emergency_department_destination_bps},
+        "transport_mode":{"coded_events":result.transport_mode_coded_events,"counts":result.transport_mode_counts},
+        "incident_urbanicity":{"coded_events":result.incident_urbanicity_coded_events,"counts":result.incident_urbanicity_counts},
+        "interpretation":{"allowed":"published 2024 national EMS activation, 911, destination-type, transport-mode, and incident-urbanicity counts after the report's stated inclusion and missing-value rules","boundary":"NEMSIS submissions are voluntary, activations are not unique patients, geographic identifiers are restricted from the public surface, and differently grained tables have separate denominators.","held":"county origin-destination flow, scene-to-destination duration, road travel time, coverage completeness, current local operations, access, need, adequacy, candidates, effects, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nemsis_ems_destination_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nemsis_ems_destination_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nemsis-ems-destination-2024:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"national NEMSIS reporting surface with incident urbanicity but restricted public geographic identifiers","population_or_network":"EMS activations, including a 911-initiated surface with patient contact for published destination tables","ownership":"mixed public, nonprofit, fire, hospital, tribal, and private EMS agencies","time_basis":"calendar 2024 events reported in the September 24, 2025 annual report","unit_basis":"EMS activations or events, not unique patients","included":"national activation, 911, destination-type, transport-mode, and incident-urbanicity aggregates","excluded":"public incident county/ZIP, destination county/ZIP, linked origin-destination geography, transport duration, road travel time, coverage completeness, access, need, adequacy, candidates, effects, and costs"},
+        "source_custody":{"source_id":"NEMSIS-ANNUAL-REPORT-2024","publisher":result.source.publisher,"source_path_or_url":result.source.report_url,"vintage":"2024","capture_status":"published aggregate fixture with checksum, category-sum, denominator, and claim-boundary invariants","checksum_or_null":result.source.pdf_sha256},
+        "problem":{"baseline_metric":"share of destination-coded 911 EMS events transported to hospital or freestanding emergency departments","baseline_value_or_null":result.emergency_department_destination_bps,"affected_population_or_exposure_or_null":result.destination_coded_events,"problem_boundary":"national emergency destination routing does not expose county origin-destination flow, travel time, local access, or unmet need","hospital_ed_events":result.destination_counts["hospital_emergency_department"],"freestanding_ed_events":result.destination_counts["freestanding_emergency_department"],"incident_rural_events":result.incident_urbanicity_counts["rural"],"incident_frontier_events":result.incident_urbanicity_counts["frontier"]},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no EMS deployment, hospital siting, transport, referral, staffing, payment, funding, or capital decision","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"voluntary reporting, remote-county gaps, state restrictions, nontransport events, excluded not-applicable/not-recorded values, repeat activations, local protocol, destination choice, distance, time, and current conditions remain unresolved","transferability_boundary":"national destination aggregates do not establish local access or an intervention effect"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"published national EMS event context only","netting_rule":"EMS destination aggregates cannot enter Taxlane fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"national EMS destination observation only","peer_goal_basis":null,"evaluation_horizons":"annual NEMSIS report","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"a high emergency-department destination share can coexist with long travel, thin coverage, destination bypass, or adequate local routing","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add EMS activations to ED visits, inpatient cases, or unique beneficiaries","observation_cadence":"annual NEMSIS report","reopen_triggers":"publicly usable county origin-destination or scene-to-destination time plus total-population demand, compatible operations, outcomes, costs, and delivery evidence","current_disposition":"held"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":null,"useful_life":null,"sunset_or_review":"refresh on the next NEMSIS annual report"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"RUR TRN VET DEF","non_additivity_rule":"EMS destination observations are shared HLT/TRN context, not additive program need or spending"},
+        "readiness":{"domain_evidence_ready":true,"national_ems_destination_ready":true,"incident_urbanicity_ready":true,"county_origin_destination_ready":result.county_origin_destination_observed,"scene_to_destination_time_ready":result.scene_to_destination_time_observed,"travel_time_ready":result.travel_time_ready,"geographic_access_ready":result.geographic_access_ready,"need_ready":result.need_ready,"candidate_bounded":result.candidate_ready,"outcome_ready":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":result.taxlane_admission_ready},
+        "claim_boundaries":{"domain_finding_allowed":true,"candidate_recommendation_allowed":false,"destination_share_as_access_finding_allowed":false,"travel_time_claim_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2305,6 +2432,54 @@ mod tests {
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(
             output["claim_boundaries"]["emergency_flow_claim_allowed"],
+            false
+        );
+        assert_eq!(output["readiness"]["taxlane_admission_ready"], false);
+    }
+
+    #[test]
+    fn nemsis_destination_reconciles_published_category_totals() {
+        let result = load_nemsis_ems_destination_fixture().unwrap();
+        assert_eq!(result.total_activations, 60_298_684);
+        assert_eq!(result.activations_in_911_surface, 46_733_668);
+        assert_eq!(result.destination_coded_events, 30_123_274);
+        assert_eq!(
+            result.destination_counts["hospital_emergency_department"],
+            27_706_728
+        );
+        assert_eq!(result.emergency_department_destination_events, 27_863_074);
+        assert_eq!(result.emergency_department_destination_bps, 9_250);
+    }
+
+    #[test]
+    fn nemsis_destination_preserves_transport_and_urbanicity_denominators() {
+        let result = load_nemsis_ems_destination_fixture().unwrap();
+        assert_eq!(result.transport_mode_coded_events, 28_363_789);
+        assert_eq!(result.incident_urbanicity_coded_events, 45_210_858);
+        assert_eq!(result.incident_urbanicity_counts["rural"], 2_652_293);
+        assert_eq!(result.incident_urbanicity_counts["frontier"], 452_100);
+        assert!(!result.destination_total_is_all_911_activations);
+        assert!(!result.public_geographic_identifiers_available);
+    }
+
+    #[test]
+    fn nemsis_destination_pack_holds_geographic_access_and_savings() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nemsis_ems_destination_held_pack_json().unwrap()).unwrap();
+        assert_eq!(output["identity"]["track"], "HLT");
+        assert_eq!(output["readiness"]["national_ems_destination_ready"], true);
+        assert_eq!(
+            output["readiness"]["county_origin_destination_ready"],
+            false
+        );
+        assert_eq!(
+            output["readiness"]["scene_to_destination_time_ready"],
+            false
+        );
+        assert_eq!(output["readiness"]["geographic_access_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(
+            output["claim_boundaries"]["travel_time_claim_allowed"],
             false
         );
         assert_eq!(output["readiness"]["taxlane_admission_ready"], false);

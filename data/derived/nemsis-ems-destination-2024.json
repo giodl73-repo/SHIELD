@@ -1,0 +1,62 @@
+{
+  "source": {
+    "publisher": "National Emergency Medical Services Information System Technical Assistance Center",
+    "dataset_title": "NEMSIS Data Report 2024",
+    "landing_page": "https://nemsis.org/using-ems-data/articles-and-publications/",
+    "report_url": "https://nemsis.org/wp-content/uploads/2025/09/NEMSIS-End-of-Year-Report-2024-9-24-25.pdf",
+    "supported_by": "National Highway Traffic Safety Administration Office of Emergency Medical Services",
+    "created": "2025-09-24",
+    "captured": "2026-07-31",
+    "pdf_pages": 18,
+    "pdf_bytes": 2054076,
+    "pdf_sha256": "64acb775e9b16f49427371e8b71f0dcda5dba5ec84bb92e004e1149e1f949a84"
+  },
+  "year": 2024,
+  "total_activations": 60298684,
+  "participating_states_and_territories": 54,
+  "reporting_agencies": 14756,
+  "activations_in_911_surface": 46733668,
+  "incident_county_coverage_percent": 99,
+  "destination_coded_events": 30123274,
+  "destination_counts": {
+    "hospital_emergency_department": 27706728,
+    "hospital_non_emergency_department_bed": 1738980,
+    "other_ems_responder_ground": 188683,
+    "freestanding_emergency_department": 156346,
+    "home": 73293,
+    "other": 69367,
+    "nursing_home_or_assisted_living": 66934,
+    "morgue_or_mortuary": 48756,
+    "other_ems_responder_air": 40502,
+    "medical_office_or_clinic": 24752,
+    "urgent_care": 6993,
+    "police_or_jail": 1940
+  },
+  "emergency_department_destination_events": 27863074,
+  "emergency_department_destination_bps": 9250,
+  "transport_mode_coded_events": 28363789,
+  "transport_mode_counts": {
+    "non_emergent": 18620902,
+    "emergent_immediate_response": 9350263,
+    "emergent_downgraded_to_non_emergent": 277726,
+    "non_emergent_upgraded_to_emergent": 114898
+  },
+  "incident_urbanicity_coded_events": 45210858,
+  "incident_urbanicity_counts": {
+    "urban": 39579519,
+    "rural": 2652293,
+    "suburban": 2526946,
+    "frontier": 452100
+  },
+  "voluntary_submission": true,
+  "activations_are_unique_patients": false,
+  "destination_total_is_all_911_activations": false,
+  "public_geographic_identifiers_available": false,
+  "county_origin_destination_observed": false,
+  "scene_to_destination_time_observed": false,
+  "travel_time_ready": false,
+  "geographic_access_ready": false,
+  "need_ready": false,
+  "candidate_ready": false,
+  "taxlane_admission_ready": false
+}

@@ -50,6 +50,10 @@ enum Commands {
     CmsInpatientOriginDestinationBaseline,
     /// Emit the non-authoritative inpatient origin-destination HLT pack.
     CmsInpatientOriginDestinationHeldPack,
+    /// Reproduce published national NEMSIS EMS destination observations.
+    NemsisEmsDestinationBaseline,
+    /// Emit the non-authoritative national EMS destination HLT pack.
+    NemsisEmsDestinationHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -135,6 +139,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::CmsInpatientOriginDestinationHeldPack => println!(
             "{}",
             shield_cms_access::cms_inpatient_origin_destination_held_pack_json()?
+        ),
+        Commands::NemsisEmsDestinationBaseline => println!(
+            "{}",
+            shield_cms_access::nemsis_ems_destination_baseline_json()?
+        ),
+        Commands::NemsisEmsDestinationHeldPack => println!(
+            "{}",
+            shield_cms_access::nemsis_ems_destination_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;
@@ -223,5 +235,7 @@ mod tests {
         assert!(
             Cli::try_parse_from(["shield", "cms-inpatient-origin-destination-held-pack"]).is_ok()
         );
+        assert!(Cli::try_parse_from(["shield", "nemsis-ems-destination-baseline"]).is_ok());
+        assert!(Cli::try_parse_from(["shield", "nemsis-ems-destination-held-pack"]).is_ok());
     }
 }
