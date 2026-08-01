@@ -372,6 +372,26 @@ identical. The 10-minute extract share is also not Local Law Category 9 ALS
 compliance. Adequacy, causes, outcomes, candidates, costs, and savings remain
 held.
 
+### Category 9 source-drift monitor
+
+The two official publication surfaces do not represent the same refresh. A
+complete calendar-2025 month/borough join makes the difference inspectable:
+
+| Open Data minus Power BI | Cells or incidents |
+|---|---:|
+| Open Data higher | 54 of 72 cells |
+| Equal | 18 of 72 cells |
+| Open Data lower | 0 of 72 cells |
+| Total count difference | +387 incidents |
+| Largest absolute cell difference | 23 incidents |
+
+All 12 months and all six borough labels have nonzero aggregate differences.
+That rejects a localized anomaly and is consistent with broad cross-snapshot
+revision, but it does not prove the revision mechanism or make either source
+wrong. SHIELD uses the later-refresh Power BI result for the captured official
+headline and the documented Open Data API for labelled machine replay. It never
+averages, overwrites, or splices cells across the two snapshots.
+
 ## Why this is harder than physical infrastructure
 
 SHIELD cannot treat capacity as a fungible physical flow. A staffed bed,
@@ -397,7 +417,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target and Local Law 119 Category 9 public-evidence boundary, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target, Local Law 119 Category 9 public-evidence boundary and source-drift monitor, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -437,6 +457,8 @@ cargo run -p shield-cli -- nyc-ems-category9-operations-context-baseline
 cargo run -p shield-cli -- nyc-ems-category9-operations-context-held-pack
 cargo run -p shield-cli -- nyc-ems-category9-public-evidence-boundary-baseline
 cargo run -p shield-cli -- nyc-ems-category9-public-evidence-boundary-held-pack
+cargo run -p shield-cli -- nyc-ems-category9-source-drift-baseline
+cargo run -p shield-cli -- nyc-ems-category9-source-drift-held-pack
 cargo test --workspace
 ```
 

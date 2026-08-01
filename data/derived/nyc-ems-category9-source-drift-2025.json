@@ -1,0 +1,86 @@
+{
+  "captured": "2026-07-31",
+  "definition": "Percentage of response time of less than 10 minutes to Advanced Life Support medical emergencies by Advanced Life Support ambulances",
+  "open_data": {
+    "dataset_id": "gpny-cuvw",
+    "updated_at": "2026-07-22T18:35:35Z",
+    "rows": 72,
+    "response_bytes": 18074,
+    "response_sha256": "96c30e3ccdc493a7d0f887cb12858fb0c64fd1330ec48a430f533b6aad7a58c9",
+    "count_total": 216986,
+    "share_precision": "two decimal percentage points per borough-month row"
+  },
+  "power_bi": {
+    "resource_key": "e59d7043-7f5c-4a62-bdec-295ddb7cc7b3",
+    "model_id": 533915,
+    "last_refresh_at": "2026-07-27T15:07:31.633Z",
+    "refresh_lag_after_open_data_seconds": 419516.633,
+    "rows": 72,
+    "payload_bytes": 2454,
+    "payload_sha256": "c58c2099de8d47b8567c6c8bb43b102846d0a3be35aa59f78a12b59a315f4ead",
+    "response_bytes": 5197,
+    "response_sha256": "b5dc59a54379d1fdbb0f9f2215f42728daf484278d5a1d5f7b87da349fc26495",
+    "count_total": 216599,
+    "share_precision": "unrounded fraction returned by model measure"
+  },
+  "cell_reconciliation": {
+    "joined_cells": 72,
+    "open_data_higher_cells": 54,
+    "equal_cells": 18,
+    "open_data_lower_cells": 0,
+    "months_with_nonzero_difference": 12,
+    "boroughs_with_nonzero_difference": 6,
+    "total_count_difference_open_data_minus_power_bi": 387,
+    "maximum_absolute_cell_count_difference": 23,
+    "monthly_count_difference": {
+      "2025 / 01": 15,
+      "2025 / 02": 18,
+      "2025 / 03": 23,
+      "2025 / 04": 34,
+      "2025 / 05": 33,
+      "2025 / 06": 44,
+      "2025 / 07": 46,
+      "2025 / 08": 37,
+      "2025 / 09": 45,
+      "2025 / 10": 30,
+      "2025 / 11": 28,
+      "2025 / 12": 34
+    },
+    "borough_count_difference": {
+      "Bronx": 43,
+      "Brooklyn": 113,
+      "Manhattan": 185,
+      "Queens": 31,
+      "Staten Island": 3,
+      "Unspecified": 12
+    }
+  },
+  "classification": {
+    "same_publisher_system_family": true,
+    "same_measure_definition": true,
+    "same_snapshot_time": false,
+    "broad_one_direction_cell_drift_observed": true,
+    "localized_anomaly_supported": false,
+    "snapshot_revision_is_consistent_explanation": true,
+    "revision_mechanism_published_or_proven": false,
+    "sources_safe_to_blend": false,
+    "display_precedence": "Use the later-refresh Power BI exact result for the captured official headline, labelled with its refresh time.",
+    "machine_replay_precedence": "Use Open Data for documented API replay, labelled with its snapshot time and rounded-row precision.",
+    "drift_rule": "Never overwrite, average, or splice cells across snapshots; compare complete same-definition snapshots and retain both custody records."
+  },
+  "monitor_contract": {
+    "identity_key": ["measure definition", "calendar month", "borough"],
+    "required_snapshot_fields": ["publisher", "dataset or model identity", "refresh timestamp", "query or payload hash", "response hash", "row count", "count total", "share precision"],
+    "reopen_triggers": ["either source refreshes", "a cell changes direction", "the 72-cell join stops closing", "the publisher documents the revision mechanism", "the two complete snapshots converge"],
+    "candidate_or_fiscal_effect": "none"
+  },
+  "claim_boundaries": {
+    "source_drift_characterized": true,
+    "revision_mechanism_identified": false,
+    "official_data_error_claim_allowed": false,
+    "cell_blending_allowed": false,
+    "operational_driver_ready": false,
+    "candidate_ready": false,
+    "taxlane_admission_ready": false
+  }
+}

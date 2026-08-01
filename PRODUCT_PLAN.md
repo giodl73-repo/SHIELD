@@ -76,6 +76,10 @@ where infrastructure methods do not transfer cleanly.
   sensitivity analysis, privacy-safe outcome inventory, and a pre-specified
   linked-data acquisition design. Public sources still support no bounded
   intervention or Taxlane admission.
+- A complete 72-cell source-drift monitor showing that Open Data is higher in
+  54 cells and equal in 18, with all months and borough labels contributing to
+  the 387-incident difference. The result defines display and machine-replay
+  precedence without alleging error or blending separately refreshed snapshots.
 
 ## Next work
 

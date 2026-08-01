@@ -86,6 +86,10 @@ enum Commands {
     NycEmsCategory9PublicEvidenceBoundaryBaseline,
     /// Emit the non-authoritative Category 9 public-evidence HLT pack.
     NycEmsCategory9PublicEvidenceBoundaryHeldPack,
+    /// Reproduce the complete Category 9 cross-snapshot drift monitor.
+    NycEmsCategory9SourceDriftBaseline,
+    /// Emit the non-authoritative Category 9 source-drift HLT pack.
+    NycEmsCategory9SourceDriftHeldPack,
     Corpus {
         path: std::path::PathBuf,
     },
@@ -235,6 +239,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::NycEmsCategory9PublicEvidenceBoundaryHeldPack => println!(
             "{}",
             shield_cms_access::nyc_ems_category9_public_evidence_boundary_held_pack_json()?
+        ),
+        Commands::NycEmsCategory9SourceDriftBaseline => println!(
+            "{}",
+            shield_cms_access::nyc_ems_category9_source_drift_baseline_json()?
+        ),
+        Commands::NycEmsCategory9SourceDriftHeldPack => println!(
+            "{}",
+            shield_cms_access::nyc_ems_category9_source_drift_held_pack_json()?
         ),
         Commands::Corpus { path } => {
             let text = std::fs::read_to_string(&path)?;

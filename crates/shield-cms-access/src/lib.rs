@@ -39,6 +39,8 @@ const NYC_EMS_CATEGORY9_OPERATIONS_CONTEXT_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-category9-operations-context-2025.json");
 const NYC_EMS_CATEGORY9_PUBLIC_EVIDENCE_BOUNDARY_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-category9-public-evidence-boundary-2025.json");
+const NYC_EMS_CATEGORY9_SOURCE_DRIFT_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-category9-source-drift-2025.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -3074,6 +3076,161 @@ pub fn nyc_ems_category9_public_evidence_boundary_held_pack_json() -> Result<Str
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSourceDriftSnapshot {
+    pub rows: u64,
+    pub response_bytes: u64,
+    pub response_sha256: String,
+    pub count_total: u64,
+    pub share_precision: String,
+    #[serde(flatten)]
+    pub custody: BTreeMap<String, serde_json::Value>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSourceDriftReconciliation {
+    pub joined_cells: u64,
+    pub open_data_higher_cells: u64,
+    pub equal_cells: u64,
+    pub open_data_lower_cells: u64,
+    pub months_with_nonzero_difference: u64,
+    pub boroughs_with_nonzero_difference: u64,
+    pub total_count_difference_open_data_minus_power_bi: i64,
+    pub maximum_absolute_cell_count_difference: u64,
+    pub monthly_count_difference: BTreeMap<String, i64>,
+    pub borough_count_difference: BTreeMap<String, i64>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSourceDriftClassification {
+    pub same_publisher_system_family: bool,
+    pub same_measure_definition: bool,
+    pub same_snapshot_time: bool,
+    pub broad_one_direction_cell_drift_observed: bool,
+    pub localized_anomaly_supported: bool,
+    pub snapshot_revision_is_consistent_explanation: bool,
+    pub revision_mechanism_published_or_proven: bool,
+    pub sources_safe_to_blend: bool,
+    pub display_precedence: String,
+    pub machine_replay_precedence: String,
+    pub drift_rule: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSourceDriftBoundaries {
+    pub source_drift_characterized: bool,
+    pub revision_mechanism_identified: bool,
+    pub official_data_error_claim_allowed: bool,
+    pub cell_blending_allowed: bool,
+    pub operational_driver_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsCategory9SourceDrift {
+    pub captured: String,
+    pub definition: String,
+    pub open_data: NycEmsSourceDriftSnapshot,
+    pub power_bi: NycEmsSourceDriftSnapshot,
+    pub cell_reconciliation: NycEmsSourceDriftReconciliation,
+    pub classification: NycEmsSourceDriftClassification,
+    pub monitor_contract: serde_json::Value,
+    pub claim_boundaries: NycEmsSourceDriftBoundaries,
+}
+
+impl NycEmsCategory9SourceDrift {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let cells = &self.cell_reconciliation;
+        let class = &self.classification;
+        let boundary = &self.claim_boundaries;
+        if self.captured != "2026-07-31"
+            || self.open_data.rows != 72
+            || self.power_bi.rows != 72
+            || self.open_data.count_total as i64 - self.power_bi.count_total as i64
+                != cells.total_count_difference_open_data_minus_power_bi
+            || cells.joined_cells != 72
+            || cells.open_data_higher_cells + cells.equal_cells + cells.open_data_lower_cells
+                != cells.joined_cells
+            || cells.open_data_higher_cells != 54
+            || cells.equal_cells != 18
+            || cells.open_data_lower_cells != 0
+            || cells.monthly_count_difference.len() != 12
+            || cells.borough_count_difference.len() != 6
+            || cells.monthly_count_difference.values().sum::<i64>() != 387
+            || cells.borough_count_difference.values().sum::<i64>() != 387
+            || cells.months_with_nonzero_difference != 12
+            || cells.boroughs_with_nonzero_difference != 6
+            || cells.maximum_absolute_cell_count_difference != 23
+            || !class.same_publisher_system_family
+            || !class.same_measure_definition
+            || class.same_snapshot_time
+            || !class.broad_one_direction_cell_drift_observed
+            || class.localized_anomaly_supported
+            || !class.snapshot_revision_is_consistent_explanation
+            || class.revision_mechanism_published_or_proven
+            || class.sources_safe_to_blend
+            || !boundary.source_drift_characterized
+            || boundary.revision_mechanism_identified
+            || boundary.official_data_error_claim_allowed
+            || boundary.cell_blending_allowed
+            || boundary.operational_driver_ready
+            || boundary.candidate_ready
+            || boundary.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS Category 9 source-drift monitor failed".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_category9_source_drift_fixture(
+) -> Result<NycEmsCategory9SourceDrift, AccessError> {
+    let result: NycEmsCategory9SourceDrift =
+        serde_json::from_str(NYC_EMS_CATEGORY9_SOURCE_DRIFT_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_category9_source_drift_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_source_drift_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-category9-source-drift.v1",
+        "captured":result.captured,
+        "definition":result.definition,
+        "open_data":result.open_data,
+        "power_bi":result.power_bi,
+        "cell_reconciliation":result.cell_reconciliation,
+        "classification":result.classification,
+        "monitor_contract":result.monitor_contract,
+        "claim_boundaries":result.claim_boundaries,
+        "interpretation":{"allowed":"complete same-definition snapshot comparison and bounded source-precedence rules","boundary":"the broad one-direction difference is consistent with revision but the publisher has not documented its mechanism","held":"source-error, cell blending, operational driver, candidate, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_category9_source_drift_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_source_drift_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-category9-source-drift-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"New York City","population_or_network":"calendar-2025 Category 9 published aggregates","ownership":"City of New York / Citywide Performance Reporting","time_basis":"two separately refreshed snapshots captured 2026-07-31","unit_basis":"72 calendar-month and borough cells","included":"complete-cell source drift and precedence monitor","excluded":"record-level revision history, source-error finding, blended cells, operations, outcomes, candidate, and costs"},
+        "source_custody":{"source_id":"NYC-EMS-CATEGORY9-SOURCE-DRIFT-2025","publisher":"City of New York","source_path_or_url":"https://data.cityofnewyork.us/resource/gpny-cuvw.json","vintage":"Open Data 2026-07-22 and Power BI 2026-07-27 refreshes","capture_status":"complete 72-cell snapshots retained separately","checksum_or_null":result.open_data.response_sha256},
+        "problem":{"baseline_metric":"Open Data minus Power BI Category 9 incident-count drift","baseline_value_or_null":result.cell_reconciliation.total_count_difference_open_data_minus_power_bi,"affected_population_or_exposure_or_null":null,"problem_boundary":"54 cells are higher and 18 equal in Open Data; the broad pattern is consistent with revision but its mechanism is not published"},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no operational, clinical, funding, or source-correction action","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"publisher revision mechanics and row history are unavailable","transferability_boundary":"the result governs custody of these two NYC snapshots only"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"source drift only","netting_rule":"source drift cannot enter fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"source-drift monitor","peer_goal_basis":null,"evaluation_horizons":"on either source refresh","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"silent blending would create a synthetic snapshot","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"retain both snapshots; never average, overwrite, or splice cells","observation_cadence":"on source refresh","reopen_triggers":result.monitor_contract["reopen_triggers"],"current_disposition":"use later-refresh Power BI for captured headline and documented Open Data API for labelled replay"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":"rerun the complete 72-cell join on refresh","useful_life":null,"sunset_or_review":"review if snapshots converge or revision mechanics are documented"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"none admitted","non_additivity_rule":"the two totals describe alternative snapshots and cannot be added"},
+        "readiness":{"domain_evidence_ready":true,"source_drift_characterized":true,"revision_mechanism_identified":false,"operational_driver_ready":false,"candidate_bounded":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"source_drift_claim_allowed":true,"official_data_error_claim_allowed":false,"cell_blending_allowed":false,"operational_driver_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3955,6 +4112,56 @@ mod tests {
         assert_eq!(output["readiness"]["candidate_bounded"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["claim_boundaries"]["causal_claim_allowed"], false);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_category9_source_drift_reconciles_every_cell() {
+        let result = load_nyc_ems_category9_source_drift_fixture().unwrap();
+        assert_eq!(result.cell_reconciliation.joined_cells, 72);
+        assert_eq!(result.cell_reconciliation.open_data_higher_cells, 54);
+        assert_eq!(result.cell_reconciliation.equal_cells, 18);
+        assert_eq!(
+            result
+                .cell_reconciliation
+                .monthly_count_difference
+                .values()
+                .sum::<i64>(),
+            387
+        );
+        assert_eq!(
+            result
+                .cell_reconciliation
+                .borough_count_difference
+                .values()
+                .sum::<i64>(),
+            387
+        );
+    }
+
+    #[test]
+    fn nyc_ems_category9_source_drift_preserves_source_boundaries() {
+        let result = load_nyc_ems_category9_source_drift_fixture().unwrap();
+        assert!(
+            result
+                .classification
+                .broad_one_direction_cell_drift_observed
+        );
+        assert!(!result.classification.localized_anomaly_supported);
+        assert!(!result.classification.revision_mechanism_published_or_proven);
+        assert!(!result.classification.sources_safe_to_blend);
+        assert!(!result.claim_boundaries.official_data_error_claim_allowed);
+    }
+
+    #[test]
+    fn nyc_ems_category9_source_drift_pack_holds_fiscal_authority() {
+        let output: serde_json::Value =
+            serde_json::from_str(&nyc_ems_category9_source_drift_held_pack_json().unwrap())
+                .unwrap();
+        assert_eq!(output["readiness"]["source_drift_characterized"], true);
+        assert_eq!(output["readiness"]["candidate_bounded"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["cell_blending_allowed"], false);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
     }
 }

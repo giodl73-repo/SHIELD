@@ -392,3 +392,32 @@ signal at `r=-0.481`. This prioritizes acquisition of incident-linked ALS
 availability/posting exposure and patient outcomes. It does not identify a
 driver or support an intervention, adequacy, cost, savings, allocation, or rate
 claim.
+
+## NYC-EMS-CATEGORY9-SOURCE-DRIFT-2025
+
+- Open Data dataset / updated: `gpny-cuvw` / `2026-07-22T18:35:35Z`
+- Open Data metadata bytes / SHA-256: 1,901 / `55682468b7f7e02877b527d28fd2815abe7238020c25fd90be2e1a0b7b686273`
+- Open Data data-dictionary bytes / SHA-256: 68,908 / `ace6fdaf9b75f51737e8df0833f15460d2cedfdc6372df57ca86ba9312ce6a6b`
+- Open Data 72-cell response bytes / SHA-256: 18,074 / `96c30e3ccdc493a7d0f887cb12858fb0c64fd1330ec48a430f533b6aad7a58c9`
+- Power BI resource / model / last refresh: `e59d7043-7f5c-4a62-bdec-295ddb7cc7b3` / `533915` / `2026-07-27T15:07:31.633Z`
+- Power BI model/exploration bytes / SHA-256: 188,914 / `530d4991f946f71500f141fca2c7a217519b8e66b5545dcfc92a24ad784856b5`
+- Power BI conceptual-schema bytes / SHA-256: 6,408 / `afae4549ef2811c72ea79f39adc12a3c4bf3b3bd22337096b7153869d2106bd7`
+- Power BI 72-cell payload bytes / SHA-256: 2,454 / `c58c2099de8d47b8567c6c8bb43b102846d0a3be35aa59f78a12b59a315f4ead`
+- Power BI response bytes / SHA-256: 5,197 / `b5dc59a54379d1fdbb0f9f2215f42728daf484278d5a1d5f7b87da349fc26495`
+- Derived fixture: `data/derived/nyc-ems-category9-source-drift-2025.json`
+
+Open Data totals 216,986 incidents and Power BI totals 216,599. In the exact
+72-cell join, Open Data is higher in 54 cells, equal in 18, and lower in none;
+monthly and borough deltas each sum to 387. Every month and borough label has a
+nonzero aggregate difference, and the largest cell difference is 23 incidents.
+The Power BI response hash records this capture but is not a deterministic
+replay key because the response envelope contains runtime identifiers and
+timestamps; the payload hash and derived cell fixture carry stable query and
+arithmetic custody.
+
+The City data dictionary says the Mayor's Office of Operations maintains the
+monthly Citywide Performance Reporting data, but no revision mechanism or row
+history was located. The pattern is consistent with broad snapshot revision;
+it does not prove the cause or support an error claim. Keep both snapshots,
+label their refresh times and precision, and rerun the full join when either
+source refreshes.
