@@ -363,3 +363,32 @@ and average dispatch seconds (`r=-0.702`). The qualifying sets and incident
 identities do not match, borough/month confounding is uncontrolled, and neither
 source contains a compatible patient-outcome join. These are hypothesis signals,
 not operational drivers, causal effects, service adequacy, or candidates.
+
+## NYC-EMS-CATEGORY9-PUBLIC-EVIDENCE-BOUNDARY-2025
+
+- Direct Local Law 119 Open Data dataset: `gpny-cuvw`
+- Dataset rows / first / last month: 11,323 / `2013 / 11` / `2026 / 06`
+- Metadata bytes / SHA-256: 13,005 / `90894a60e7158d184e17e3f8e22b9e76457d0293a59aac1cc3a2afce66821d1e`
+- Calendar-2025 Category 9 rows / bytes / SHA-256: 72 / 18,074 / `96c30e3ccdc493a7d0f887cb12858fb0c64fd1330ec48a430f533b6aad7a58c9`
+- MMR dataset / metadata bytes / SHA-256: `rbed-zzin` / 54,846 / `e3d37f2030e7c168b8576938d551104d48256547a88a4edd33664f117bf6541a`
+- MMR 2025 selected rows / bytes / SHA-256: 120 / 7,751 / `d74cdc3538de2460a0ec782f0f02da228f451631f905f195176e14f9211a28f3`
+- 911 end-to-end dataset / metadata SHA-256: `t7p9-n9dy` / `b510a42b1e00fc3b773e36d7ce89478d38d8d47fe19e7b64f6f6b48bcc90a9e8`
+- NYSDOH SPARCS ED summary / inpatient disposition datasets: `5gzv-zv2z` / `sf4k-39ay`
+- NYC catalog posting/routing and cardiac-outcome zero-result response SHA-256: `f69ff5b2af3640908961a4a591987a87f66754c842a0172947ed372e935ea33b` / `90ca77160bd61336e8942e0683517998479b3e77b6c3a4b5f9fcdc75f773f31e`
+- Derived fixture: `data/derived/nyc-ems-category9-public-evidence-boundary-2025.json`
+
+The direct Open Data rows total 216,986 incidents, 387 more than the captured
+Power BI model. Their weighted share, reconstructed from rounded monthly rows,
+is 39.232% versus 39.260% in Power BI. The source-revision reason is unknown, so
+the two sources are not blended. Open Data also misdescribes its monthly label
+as a week-start date; that metadata defect remains visible.
+
+Seven public source classes were tested. MMR borough indicator shells contain
+no 2025 values; the other operations sources lack a matching ALS qualifying set
+or shared incident key. SPARCS has privacy-safe disposition fields but no EMS
+linkage. Two-way borough/month demeaning reduces average-response and dispatch
+associations to `r=-0.187` and `r=-0.091`; travel remains the largest descriptive
+signal at `r=-0.481`. This prioritizes acquisition of incident-linked ALS
+availability/posting exposure and patient outcomes. It does not identify a
+driver or support an intervention, adequacy, cost, savings, allocation, or rate
+claim.

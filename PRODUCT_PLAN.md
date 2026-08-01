@@ -71,6 +71,11 @@ where infrastructure methods do not transfer cleanly.
   shares and separately defined dispatch process measures. Reproducible Pearson
   moments prioritize ALS-unit operations questions without identifying a
   driver, patient outcome, causal effect, candidate, or savings.
+- A seven-source NYC Category 9 public-evidence boundary with direct Open Data
+  replay, a visible 387-incident Power BI revision difference, borough/month
+  sensitivity analysis, privacy-safe outcome inventory, and a pre-specified
+  linked-data acquisition design. Public sources still support no bounded
+  intervention or Taxlane admission.
 
 ## Next work
 
@@ -78,9 +83,10 @@ The facility, rurality, formal shortage-registry, available-bed-use,
 certified-service/workforce, and emergency-process baselines are complete.
 Next:
 
-1. Acquire ALS-unit-level operational and patient-outcome evidence with a shared
-   qualifying-event definition; separately verify Council/Mayor submission and
-   discrete yearly-report publication.
+1. Acquire incident-linked ALS availability/posting exposure, privacy-safe
+   outcomes, and comparison units under a shared qualifying-event definition;
+   separately verify Council/Mayor submission and discrete yearly-report
+   publication.
 2. Add compatible population denominators and outcome evidence before testing
    an NYC access or delivery intervention.
 3. Add machine-readable substate emergency access coverage or publicly usable

@@ -25,12 +25,14 @@ Work is organized into small waves and pulses.
 | `2026-07-31-nyc-ems-local-law-119-category9` | complete | Official calendar-2025 Category 9 citywide and borough publication, with whole-law compliance, pass/fail, adequacy, and fiscal claims held (WP-021). |
 | `2026-07-31-nyc-ems-local-law-119-reporting-scope` | complete | Enacted reporting-scope correction and public-model publication audit, with Council/Mayor submission, yearly publication, pass/fail, and fiscal claims held (WP-022). |
 | `2026-07-31-nyc-ems-category9-operations-context` | complete | Sixty-row named-borough/month ecological operations bridge, with patient outcomes, drivers, causality, adequacy, and fiscal claims held (WP-023). |
+| `2026-07-31-nyc-ems-category9-public-evidence-boundary` | complete | Seven-source public spine, direct-source reconciliation, borough/month sensitivity screen, and pre-specified acquisition design, with no bounded intervention or fiscal admission (WP-024). |
 
 ## Active wave
 
-- No active wave. The next NYC slice requires ALS-unit-level operations or
-  patient outcomes with a shared qualifying-event identity; submission and
-  yearly-publication custody remain a parallel reporting task.
+- No active wave. The public-data boundary is exhausted for candidate design.
+  The next NYC slice requires incident-linked ALS availability/posting exposure,
+  privacy-safe outcomes, and comparison units; submission and yearly-publication
+  custody remain a parallel reporting task.
 
 ## Protocol
 

@@ -1,0 +1,118 @@
+{
+  "captured": "2026-07-31",
+  "category9_open_data": {
+    "publisher": "City of New York",
+    "dataset_id": "gpny-cuvw",
+    "grain": "month by agency, measure, and borough",
+    "dataset_rows": 11323,
+    "first_month": "2013 / 11",
+    "last_month": "2026 / 06",
+    "metadata_bytes": 13005,
+    "metadata_sha256": "90894a60e7158d184e17e3f8e22b9e76457d0293a59aac1cc3a2afce66821d1e",
+    "range_query_bytes": 70,
+    "range_query_sha256": "80ac778fa9610ac6994736c87dbf2d24b99dd5f87c0b0205705c8ca2626bcc4f",
+    "category9_rows": 72,
+    "category9_response_bytes": 18074,
+    "category9_response_sha256": "96c30e3ccdc493a7d0f887cb12858fb0c64fd1330ec48a430f533b6aad7a58c9",
+    "metadata_month_definition_consistent_with_values": false,
+    "metadata_defect": "The field metadata calls Month Name a week start date, while the values are YYYY / MM monthly labels."
+  },
+  "source_reconciliation": {
+    "power_bi_total_incidents": 216599,
+    "open_data_total_incidents": 216986,
+    "incident_difference_open_data_minus_power_bi": 387,
+    "power_bi_official_share": 0.3925992613111727,
+    "open_data_rounded_row_weighted_share": 0.392319104458352,
+    "share_difference_open_data_minus_power_bi": -0.0002801568528207,
+    "reason_for_difference_identified": false,
+    "sources_safe_to_blend": false,
+    "borough": {
+      "Bronx": {"power_bi_incidents":36025,"open_data_incidents":36068,"incident_difference":43,"power_bi_share":0.2564885496183206,"open_data_weighted_share":0.256242320062105},
+      "Brooklyn": {"power_bi_incidents":69108,"open_data_incidents":69221,"incident_difference":113,"power_bi_share":0.4552084388429872,"open_data_weighted_share":0.4548338712240505},
+      "Manhattan": {"power_bi_incidents":56194,"open_data_incidents":56379,"incident_difference":185,"power_bi_share":0.4185678186283233,"open_data_weighted_share":0.4181648468401355},
+      "Queens": {"power_bi_incidents":41866,"open_data_incidents":41897,"incident_difference":31,"power_bi_share":0.3434290354941958,"open_data_weighted_share":0.343338088645965},
+      "Staten Island": {"power_bi_incidents":13270,"open_data_incidents":13273,"incident_difference":3,"power_bi_share":0.4828937452901281,"open_data_weighted_share":0.4827845249755142},
+      "Unspecified": {"power_bi_incidents":136,"open_data_incidents":148,"incident_difference":12,"power_bi_share":0.2279411764705882,"open_data_weighted_share":0.2229662162162162}
+    }
+  },
+  "source_inventory": [
+    {"source_id":"NYC-LL119-OPEN-DATA","dataset_id":"gpny-cuvw","grain":"month / borough / measure","als_definition_match":true,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"baseline with unresolved Power BI revision difference"},
+    {"source_id":"FDNY-EMS-DISPATCH","dataset_id":"76xm-jjuj","grain":"incident","als_definition_match":false,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"borough-month ecological context only"},
+    {"source_id":"NYC-MMR-EMS","dataset_id":"rbed-zzin","grain":"month / indicator; some geographic indicator shells","als_definition_match":false,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"citywide context; 2025 borough response values are unpublished"},
+    {"source_id":"NYC-911-END-TO-END","dataset_id":"t7p9-n9dy","grain":"week / agency / final incident class","als_definition_match":false,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"citywide life-threatening process context only"},
+    {"source_id":"NYSDOH-SPARCS-ED-SUMMARY","dataset_id":"5gzv-zv2z","grain":"quarter / facility","als_definition_match":false,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"ED disposition context; no EMS incident linkage"},
+    {"source_id":"NYSDOH-SPARCS-INPATIENT-2024","dataset_id":"sf4k-39ay","grain":"de-identified discharge","als_definition_match":false,"shared_incident_key":false,"patient_outcome":true,"linkage_disposition":"patient disposition exists, but only discharge year and no EMS incident key"},
+    {"source_id":"NYC-CARES-PUBLIC-CATALOG-SEARCH","dataset_id":null,"grain":"none located","als_definition_match":false,"shared_incident_key":false,"patient_outcome":false,"linkage_disposition":"no NYC cardiac-arrest outcome dataset located in the NYC Open Data catalog"}
+  ],
+  "operations_custody": {
+    "mmr_dataset_id": "rbed-zzin",
+    "mmr_metadata_bytes": 54846,
+    "mmr_metadata_sha256": "e3d37f2030e7c168b8576938d551104d48256547a88a4edd33664f117bf6541a",
+    "mmr_2025_rows": 120,
+    "mmr_2025_response_bytes": 7751,
+    "mmr_2025_response_sha256": "d74cdc3538de2460a0ec782f0f02da228f451631f905f195176e14f9211a28f3",
+    "borough_response_rows": 60,
+    "borough_response_published_values": 0,
+    "end_to_end_dataset_id": "t7p9-n9dy",
+    "end_to_end_metadata_bytes": 54793,
+    "end_to_end_metadata_sha256": "b510a42b1e00fc3b773e36d7ce89478d38d8d47fe19e7b64f6f6b48bcc90a9e8",
+    "end_to_end_2025_life_threatening_month_rows": 12,
+    "end_to_end_2025_response_bytes": 2320,
+    "end_to_end_2025_response_sha256": "ea50150d27e3e8db9a5c88f1e1fab671fafb6269e875d9b1c6285c589485c4d1",
+    "sparcs_ed_summary_metadata_bytes": 29013,
+    "sparcs_ed_summary_metadata_sha256": "e164f6402c38387fcbd6246c4f2b66d415fb0978e93a6055d0be37f21f0997b9",
+    "sparcs_inpatient_2024_metadata_bytes": 57422,
+    "sparcs_inpatient_2024_metadata_sha256": "fc2f61936cf21796b6a7dfc0f870822b7861e2d2e3e35ca3b1d753d486d5a5ce",
+    "catalog_searches": [
+      {"term":"FDNY EMS ambulance staffing","result_count":4,"response_bytes":279495,"response_sha256":"ad2d78b41fa0eb8a6510f4c447c6270675466893f7117cb2ab73b9ba5b7b1640"},
+      {"term":"ambulance posting routing","result_count":0,"response_bytes":132,"response_sha256":"f69ff5b2af3640908961a4a591987a87f66754c842a0172947ed372e935ea33b"},
+      {"term":"cardiac arrest EMS","result_count":0,"response_bytes":130,"response_sha256":"90ca77160bd61336e8942e0683517998479b3e77b6c3a4b5f9fcdc75f773f31e"},
+      {"term":"CARES cardiac arrest","result_count":0,"response_bytes":130,"response_sha256":"f7fcd824d0a6a89a9915a1851d0ec362d8e1a9d2fd4cb99ad854863472dd7194"}
+    ]
+  },
+  "adjusted_screen": {
+    "joined_rows": 60,
+    "category9_named_borough_incidents": 216838,
+    "dispatch_named_borough_incidents": 1612266,
+    "method": "unweighted two-way demeaning by borough and calendar month; descriptive sensitivity screen only",
+    "moments": [
+      {"metric":"dispatch_incidents","adjustment":"unadjusted","n":60,"sum_x":23.5796,"sum_y":1612266.0,"sum_x2":9.801780740000003,"sum_y2":50679019072.0,"sum_xy":611488.9627,"pearson_r":-0.3525743696252068},
+      {"metric":"dispatch_incidents","adjustment":"borough_and_month_fixed_effects","n":60,"sum_x":-2.0539125955565396e-15,"sum_y":-7.275957614183426e-11,"sum_x2":0.03511420566666665,"sum_y2":19490675.400000002,"sum_xy":-259.72078833333353,"pearson_r":-0.3139437516319555},
+      {"metric":"average_response_seconds","adjustment":"unadjusted","n":60,"sum_x":23.5796,"sum_y":55247.55155615432,"sum_x2":9.801780740000003,"sum_y2":55610462.9218393,"sum_xy":20503.031339203455,"pearson_r":-0.7591124095426522},
+      {"metric":"average_response_seconds","adjustment":"borough_and_month_fixed_effects","n":60,"sum_x":-2.0539125955565396e-15,"sum_y":-1.2505552149377763e-12,"sum_x2":0.03511420566666665,"sum_y2":542539.5600645908,"sum_xy":-25.837301641103608,"pearson_r":-0.1871931815996706},
+      {"metric":"average_travel_seconds","adjustment":"unadjusted","n":60,"sum_x":23.5796,"sum_y":38117.889798608,"sum_x2":9.801780740000003,"sum_y2":24511146.293397654,"sum_xy":14645.544317423435,"pearson_r":-0.8420645048096723},
+      {"metric":"average_travel_seconds","adjustment":"borough_and_month_fixed_effects","n":60,"sum_x":-2.0539125955565396e-15,"sum_y":1.0686562745831907e-11,"sum_x2":0.03511420566666665,"sum_y2":27593.443779249836,"sum_xy":-14.964969602228562,"pearson_r":-0.4807634708995142},
+      {"metric":"average_dispatch_seconds","adjustment":"unadjusted","n":60,"sum_x":23.5796,"sum_y":17904.908668408367,"sum_x2":9.801780740000003,"sum_y2":8548765.13336356,"sum_xy":6116.699972478738,"pearson_r":-0.7022614257414344},
+      {"metric":"average_dispatch_seconds","adjustment":"borough_and_month_fixed_effects","n":60,"sum_x":-2.0539125955565396e-15,"sum_y":-4.121147867408581e-12,"sum_x2":0.03511420566666665,"sum_y2":434463.7844507279,"sum_xy":-11.184435652631578,"pearson_r":-0.09055154413718501}
+    ]
+  },
+  "citywide_temporal_screen": {
+    "category9_share_is_approximate_from_rounded_borough_rows": true,
+    "moments": [
+      {"metric":"ambulance_in_service_hours_per_day","n":12,"sum_x":4.722664834115048,"sum_y":98193.0,"sum_x2":1.880693370427394,"sum_y2":804194669.0,"sum_xy":38728.80266397621,"pearson_r":0.6764340595440979},
+      {"metric":"hospital_turnaround_minutes","n":10,"sum_x":4.081071864248409,"sum_y":398.78,"sum_x2":1.6720769022939972,"sum_y2":15904.0166,"sum_xy":162.72138990531548,"pearson_r":-0.24040816209163512},
+      {"metric":"life_threatening_incidents","n":12,"sum_x":4.722664834115048,"sum_y":619670.0,"sum_x2":1.880693370427394,"sum_y2":32079402534.0,"sum_xy":243796.72457199314,"pearson_r":-0.05846534301903985},
+      {"metric":"end_to_end_life_threatening_minutes","n":12,"sum_x":4.722664834115048,"sum_y":140.14,"sum_x2":1.880693370427394,"sum_y2":1647.2876,"sum_xy":54.71135167745793,"pearson_r":-0.9092700371065788}
+    ]
+  },
+  "evaluation_design": {
+    "current_design": "descriptive source reconciliation plus ecological borough and month fixed-effects sensitivity screen",
+    "causal_design_ready": false,
+    "preferred_future_design": "pre-specified stepped or interrupted implementation using incident-linked qualifying ALS calls, unit availability and posting exposure, dispatch and travel components, hospital interface, and privacy-safe patient outcomes",
+    "minimum_acquisition": ["stable qualifying-event and incident linkage key","ALS unit-hours and availability by place and time","posting or routing policy exposure with implementation dates","hospital offload interval where applicable","privacy-safe survival, clinical disposition, or neurologic outcome","pre-period and unaffected comparison units"],
+    "highest_value_hypotheses": ["travel time remains the strongest public ecological signal after borough and month adjustment","end-to-end timing tracks Category 9 month-to-month but shares a response-clock mechanism","ambulance in-service hours may index availability, but the citywide 12-month association is time-confounded","hospital turnaround remains a plausible capacity mechanism, but only ten citywide monthly values are published"],
+    "bounded_intervention_candidate_ready": false,
+    "next_acquisition_priority": "incident-linked ALS unit availability/posting exposure and privacy-safe outcome data"
+  },
+  "claim_boundaries": {
+    "public_source_spine_ready": true,
+    "source_difference_reconciled": false,
+    "definition_compatible_operations_join_ready": false,
+    "definition_compatible_outcome_join_ready": false,
+    "operational_driver_identified": false,
+    "causal_effect_ready": false,
+    "adequacy_ready": false,
+    "candidate_ready": false,
+    "taxlane_admission_ready": false
+  }
+}

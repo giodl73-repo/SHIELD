@@ -37,6 +37,8 @@ const NYC_EMS_LOCAL_LAW_119_REPORTING_SCOPE_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-local-law-119-reporting-scope-2026.json");
 const NYC_EMS_CATEGORY9_OPERATIONS_CONTEXT_FIXTURE: &str =
     include_str!("../../../data/derived/nyc-ems-category9-operations-context-2025.json");
+const NYC_EMS_CATEGORY9_PUBLIC_EVIDENCE_BOUNDARY_FIXTURE: &str =
+    include_str!("../../../data/derived/nyc-ems-category9-public-evidence-boundary-2025.json");
 
 #[derive(Debug, Error)]
 pub enum AccessError {
@@ -2874,6 +2876,204 @@ pub fn nyc_ems_category9_operations_context_held_pack_json() -> Result<String, A
     }))?)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsEvidenceMoments {
+    pub metric: String,
+    #[serde(default)]
+    pub adjustment: Option<String>,
+    pub n: u64,
+    pub sum_x: f64,
+    pub sum_y: f64,
+    pub sum_x2: f64,
+    pub sum_y2: f64,
+    pub sum_xy: f64,
+    pub pearson_r: f64,
+}
+
+impl NycEmsEvidenceMoments {
+    fn recompute(&self) -> f64 {
+        let n = self.n as f64;
+        (n * self.sum_xy - self.sum_x * self.sum_y)
+            / ((n * self.sum_x2 - self.sum_x * self.sum_x)
+                * (n * self.sum_y2 - self.sum_y * self.sum_y))
+                .sqrt()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsEvidenceSource {
+    pub source_id: String,
+    pub dataset_id: Option<String>,
+    pub grain: String,
+    pub als_definition_match: bool,
+    pub shared_incident_key: bool,
+    pub patient_outcome: bool,
+    pub linkage_disposition: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsSourceReconciliation {
+    pub power_bi_total_incidents: u64,
+    pub open_data_total_incidents: u64,
+    pub incident_difference_open_data_minus_power_bi: i64,
+    pub power_bi_official_share: f64,
+    pub open_data_rounded_row_weighted_share: f64,
+    pub share_difference_open_data_minus_power_bi: f64,
+    pub reason_for_difference_identified: bool,
+    pub sources_safe_to_blend: bool,
+    pub borough: BTreeMap<String, serde_json::Value>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsAdjustedScreen {
+    pub joined_rows: u64,
+    pub category9_named_borough_incidents: u64,
+    pub dispatch_named_borough_incidents: u64,
+    pub method: String,
+    pub moments: Vec<NycEmsEvidenceMoments>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsTemporalScreen {
+    pub category9_share_is_approximate_from_rounded_borough_rows: bool,
+    pub moments: Vec<NycEmsEvidenceMoments>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsEvidenceBoundaries {
+    pub public_source_spine_ready: bool,
+    pub source_difference_reconciled: bool,
+    pub definition_compatible_operations_join_ready: bool,
+    pub definition_compatible_outcome_join_ready: bool,
+    pub operational_driver_identified: bool,
+    pub causal_effect_ready: bool,
+    pub adequacy_ready: bool,
+    pub candidate_ready: bool,
+    pub taxlane_admission_ready: bool,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct NycEmsCategory9PublicEvidenceBoundary {
+    pub captured: String,
+    pub category9_open_data: serde_json::Value,
+    pub source_reconciliation: NycEmsSourceReconciliation,
+    pub source_inventory: Vec<NycEmsEvidenceSource>,
+    pub operations_custody: serde_json::Value,
+    pub adjusted_screen: NycEmsAdjustedScreen,
+    pub citywide_temporal_screen: NycEmsTemporalScreen,
+    pub evaluation_design: serde_json::Value,
+    pub claim_boundaries: NycEmsEvidenceBoundaries,
+}
+
+impl NycEmsCategory9PublicEvidenceBoundary {
+    pub fn validate(&self) -> Result<(), AccessError> {
+        let reconciliation = &self.source_reconciliation;
+        let boundary = &self.claim_boundaries;
+        let moments_valid = self
+            .adjusted_screen
+            .moments
+            .iter()
+            .chain(self.citywide_temporal_screen.moments.iter())
+            .all(|moments| (moments.recompute() - moments.pearson_r).abs() < 1e-12);
+        if self.captured != "2026-07-31"
+            || reconciliation.open_data_total_incidents as i64
+                - reconciliation.power_bi_total_incidents as i64
+                != reconciliation.incident_difference_open_data_minus_power_bi
+            || (reconciliation.open_data_rounded_row_weighted_share
+                - reconciliation.power_bi_official_share
+                - reconciliation.share_difference_open_data_minus_power_bi)
+                .abs()
+                > 1e-12
+            || reconciliation.reason_for_difference_identified
+            || reconciliation.sources_safe_to_blend
+            || reconciliation.borough.len() != 6
+            || self.source_inventory.len() != 7
+            || self
+                .source_inventory
+                .iter()
+                .any(|source| source.shared_incident_key)
+            || !self
+                .source_inventory
+                .iter()
+                .any(|source| source.patient_outcome)
+            || self.adjusted_screen.joined_rows != 60
+            || self.adjusted_screen.category9_named_borough_incidents != 216_838
+            || self.adjusted_screen.dispatch_named_borough_incidents != 1_612_266
+            || self.adjusted_screen.moments.len() != 8
+            || self
+                .adjusted_screen
+                .moments
+                .iter()
+                .any(|moments| moments.n != self.adjusted_screen.joined_rows)
+            || self.citywide_temporal_screen.moments.len() != 4
+            || !self
+                .citywide_temporal_screen
+                .category9_share_is_approximate_from_rounded_borough_rows
+            || !moments_valid
+            || !boundary.public_source_spine_ready
+            || boundary.source_difference_reconciled
+            || boundary.definition_compatible_operations_join_ready
+            || boundary.definition_compatible_outcome_join_ready
+            || boundary.operational_driver_identified
+            || boundary.causal_effect_ready
+            || boundary.adequacy_ready
+            || boundary.candidate_ready
+            || boundary.taxlane_admission_ready
+        {
+            return Err(AccessError::Invariant(
+                "NYC EMS Category 9 public-evidence boundary failed".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+pub fn load_nyc_ems_category9_public_evidence_boundary_fixture(
+) -> Result<NycEmsCategory9PublicEvidenceBoundary, AccessError> {
+    let result: NycEmsCategory9PublicEvidenceBoundary =
+        serde_json::from_str(NYC_EMS_CATEGORY9_PUBLIC_EVIDENCE_BOUNDARY_FIXTURE)?;
+    result.validate()?;
+    Ok(result)
+}
+
+pub fn nyc_ems_category9_public_evidence_boundary_baseline_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_public_evidence_boundary_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"shield.nyc-ems-category9-public-evidence-boundary.v1",
+        "captured":result.captured,
+        "category9_open_data":result.category9_open_data,
+        "source_reconciliation":result.source_reconciliation,
+        "source_inventory":result.source_inventory,
+        "operations_custody":result.operations_custody,
+        "adjusted_screen":result.adjusted_screen,
+        "citywide_temporal_screen":result.citywide_temporal_screen,
+        "evaluation_design":result.evaluation_design,
+        "claim_boundaries":result.claim_boundaries,
+        "interpretation":{"allowed":"official public-source inventory, unresolved source reconciliation, and descriptive ecological sensitivity screens","boundary":"public sources do not share a qualifying ALS incident identity and the privacy-safe outcome source has no EMS linkage","held":"operational driver, patient effect, causality, adequacy, intervention candidate, costs, savings, allocation, and rates"}
+    }))?)
+}
+
+pub fn nyc_ems_category9_public_evidence_boundary_held_pack_json() -> Result<String, AccessError> {
+    let result = load_nyc_ems_category9_public_evidence_boundary_fixture()?;
+    Ok(serde_json::to_string(&json!({
+        "schema":"taxlane.lane-evidence-pack-candidate.v1",
+        "identity":{"pack_id":"shield:nyc-ems-category9-public-evidence-boundary-2025:v1","track":"HLT","domain_repository":"SHIELD","candidate_id":null,"candidate_name":null,"fiscal_owner":"TAXLANE"},
+        "scope":{"geography":"New York City","population_or_network":"reported Category 9 incidents and separately defined public operations and outcome sources","ownership":"City of New York, FDNY, and New York State Department of Health","time_basis":"calendar 2025 screens with separately vintaged source inventory","unit_basis":"borough-month and citywide-month aggregates","included":"source custody, source disagreement, ecological sensitivity, and future evaluation design","excluded":"incident-linked ALS operations, linked patient outcome, operational driver, causal effect, candidate, and costs"},
+        "source_custody":{"source_id":"NYC-EMS-CATEGORY9-PUBLIC-EVIDENCE-BOUNDARY-2025","publisher":"City of New York / FDNY / NYSDOH","source_path_or_url":"https://data.cityofnewyork.us/resource/gpny-cuvw.json","vintage":"captured 2026-07-31","capture_status":"seven-source public spine with exact principal query custody","checksum_or_null":result.category9_open_data["category9_response_sha256"]},
+        "problem":{"baseline_metric":"public evidence boundary","baseline_value_or_null":result.adjusted_screen.joined_rows,"affected_population_or_exposure_or_null":result.source_reconciliation.open_data_total_incidents,"problem_boundary":"the direct Open Data and Power BI totals differ by 387 incidents for calendar 2025 and cannot be blended without reconciliation"},
+        "intervention":{"mechanism":null,"implementing_owner":null,"eligibility_rule":null,"exclusions":"no staffing, fleet, posting, routing, hospital-interface, funding, or service redesign candidate","existing_treatment_or_programmed_work":null},
+        "outcomes":{"bounded_marginal_effect_or_null":null,"effect_population":null,"horizon":null,"uncertainty":"qualifying populations, incident identities, geography, seasonality, source revision, and outcomes remain unresolved","transferability_boundary":"NYC public ecological observations do not establish patient effects or transfer to another jurisdiction"},
+        "service_floors":{"access":null,"quality_safety":null,"equity_distribution":null,"adequacy_resilience":null,"delivery_feasibility":null,"staffed_capacity":null,"affordability":null,"service_line_capacity":null,"do_no_harm_pass":null},
+        "costs":{"price_year_or_null":null,"gross_cost_or_null":null,"implementation_cost_or_null":null,"maintenance_cost_or_null":null,"offsets_or_null":null,"dedicated_receipts_or_null":null,"state_local_private_shift_or_null":null,"net_cost_or_null":null,"public_savings":null},
+        "fiscal_bridge":{"gross_public_funding_need_or_null":null,"delivery_efficiency_public_savings_or_null":null,"external_economic_benefit_or_null":null,"operator_or_private_revenue_or_null":null,"legally_dedicated_public_receipts_or_null":null,"collection_and_financing_cost_or_null":null,"net_public_fiscal_pressure_or_null":null,"revenue_authority":"none","demand_and_incidence_basis":"public evidence-boundary screen only","netting_rule":"source inventories and ecological associations cannot enter fiscal arithmetic"},
+        "adaptive_pathways":{"pathway_classes":"public-data acquisition boundary","peer_goal_basis":null,"evaluation_horizons":"pre-specified only after minimum linked acquisition","realization_owner_or_null":null,"transition_and_implementation_cost_or_null":null,"uncertainty_and_downside":"an apparent timing signal may be mechanical or confounded","service_floor_and_distribution_result":"held","overlap_and_non_additivity":"do not add populations across source systems","observation_cadence":"refresh on official source revision","reopen_triggers":"shared qualifying-event identity, ALS availability/posting exposure, privacy-safe patient outcome, comparison units, effects, and costs","current_disposition":"acquire evidence; no bounded candidate"},
+        "delivery":{"capacity":null,"schedule":null,"milestones":"reconcile official source revisions; acquire linked operations/outcomes; execute pre-specified evaluation","useful_life":null,"sunset_or_review":"refresh on source update"},
+        "overlap":{"shared_projects":null,"shared_cost_allocation":null,"other_lane_interactions":"none admitted","non_additivity_rule":"all source populations remain separate"},
+        "readiness":{"domain_evidence_ready":true,"public_source_spine_ready":true,"definition_compatible_operations_join_ready":false,"definition_compatible_outcome_join_ready":false,"causal_effect_ready":false,"adequacy_ready":false,"candidate_bounded":false,"cost_ready":false,"floors_ready":false,"delivery_ready":false,"overlap_ready":false,"taxlane_admission_ready":false},
+        "claim_boundaries":{"source_inventory_claim_allowed":true,"ecological_association_claim_allowed":true,"patient_outcome_claim_allowed":false,"operational_driver_claim_allowed":false,"causal_claim_allowed":false,"adequacy_claim_allowed":false,"candidate_recommendation_allowed":false,"savings_allowed":false,"allocation_allowed":false,"rate_change_allowed":false,"public_release_allowed":false}
+    }))?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3693,6 +3893,66 @@ mod tests {
             false
         );
         assert_eq!(output["readiness"]["operational_driver_ready"], false);
+        assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
+        assert_eq!(output["claim_boundaries"]["causal_claim_allowed"], false);
+        assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);
+    }
+
+    #[test]
+    fn nyc_ems_category9_public_sources_preserve_unresolved_revision_difference() {
+        let result = load_nyc_ems_category9_public_evidence_boundary_fixture().unwrap();
+        assert_eq!(
+            result.source_reconciliation.open_data_total_incidents,
+            216_986
+        );
+        assert_eq!(
+            result.source_reconciliation.power_bi_total_incidents,
+            216_599
+        );
+        assert_eq!(
+            result
+                .source_reconciliation
+                .incident_difference_open_data_minus_power_bi,
+            387
+        );
+        assert!(
+            !result
+                .source_reconciliation
+                .reason_for_difference_identified
+        );
+        assert!(!result.source_reconciliation.sources_safe_to_blend);
+    }
+
+    #[test]
+    fn nyc_ems_category9_adjusted_screen_reduces_timing_associations() {
+        let result = load_nyc_ems_category9_public_evidence_boundary_fixture().unwrap();
+        let adjusted = |metric: &str| {
+            result
+                .adjusted_screen
+                .moments
+                .iter()
+                .find(|row| {
+                    row.metric == metric
+                        && row.adjustment.as_deref() == Some("borough_and_month_fixed_effects")
+                })
+                .unwrap()
+                .pearson_r
+        };
+        assert!((adjusted("average_travel_seconds") + 0.480_763_470_899_514_2).abs() < 1e-12);
+        assert!(adjusted("average_response_seconds").abs() < 0.2);
+        assert!(adjusted("average_dispatch_seconds").abs() < 0.1);
+        assert!(!result.claim_boundaries.operational_driver_identified);
+        assert!(!result.claim_boundaries.causal_effect_ready);
+    }
+
+    #[test]
+    fn nyc_ems_category9_public_boundary_holds_candidate_and_fiscal_authority() {
+        let output: serde_json::Value = serde_json::from_str(
+            &nyc_ems_category9_public_evidence_boundary_held_pack_json().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(output["readiness"]["public_source_spine_ready"], true);
+        assert_eq!(output["readiness"]["candidate_bounded"], false);
         assert_eq!(output["costs"]["public_savings"], serde_json::Value::Null);
         assert_eq!(output["claim_boundaries"]["causal_claim_allowed"], false);
         assert_eq!(output["claim_boundaries"]["rate_change_allowed"], false);

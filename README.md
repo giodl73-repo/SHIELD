@@ -397,7 +397,7 @@ That makes the evidence boundary stricter:
 | `shield-score` | DIM-01..13 score artifacts. |
 | `shield-tier` | Tier-SLA classification and shortfalls. |
 | `shield-gap` | Gap analysis, transfer-strain evidence, and null results. |
-| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target and official Local Law 119 Category 9 context, HRSA shortage-registry, and held HLT baselines. |
+| `shield-cms-access` | Reconciled CMS/USDA facility, CMS operational-capacity, certified-service/workforce, emergency-process, inpatient-flow, NEMSIS destination, Minnesota stroke drive-time, NYC EMS response-time distribution/target and Local Law 119 Category 9 public-evidence boundary, HRSA shortage-registry, and held HLT baselines. |
 | `shield-cli` | Corpus, score, tier-SLA, and gap commands. |
 
 The implementation baseline is complete and fixture-backed. No patient records
@@ -435,6 +435,8 @@ cargo run -p shield-cli -- nyc-ems-local-law-119-reporting-scope-baseline
 cargo run -p shield-cli -- nyc-ems-local-law-119-reporting-scope-held-pack
 cargo run -p shield-cli -- nyc-ems-category9-operations-context-baseline
 cargo run -p shield-cli -- nyc-ems-category9-operations-context-held-pack
+cargo run -p shield-cli -- nyc-ems-category9-public-evidence-boundary-baseline
+cargo run -p shield-cli -- nyc-ems-category9-public-evidence-boundary-held-pack
 cargo test --workspace
 ```
 
