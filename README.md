@@ -32,6 +32,10 @@ service promises where meaningful, adversarial review, and acceptance of a
 rigorous null result. Each repository owns its domain semantics and safety
 boundary.
 
+The repo-local [VERDICT capability assessment](docs/vtrace/CAPABILITY_ASSESSMENT.md)
+scores this bounded program 12/21 while keeping intervention effects,
+competitive lifecycle price, operational learning, and fiscal authority held.
+
 > SHIELD is not a clinical study, licensing/accreditation determination,
 > Certificate-of-Need or payer decision, medical advice, or advocacy brief, and
 > it claims no CMS, state-agency, health-system, payer, or provider endorsement.
