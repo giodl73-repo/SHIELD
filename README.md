@@ -43,6 +43,16 @@ evidence-gated healthcare-access analysis. To scope a safe transfer test,
 source review, or aggregate-only local adaptation, start with
 [`docs/adoption/README.md`](docs/adoption/README.md).
 
+### Reuse boundary
+
+SHIELD is intentionally a domain-specific reference implementation, not a
+shared portfolio library. Infrastructure 2.0 repositories share an
+evidence-first method and crate topology, but SHIELD's clinical capacity,
+coverage, referral, and continuity types belong here. Reuse the method by
+comparison, not through cross-repository crate dependencies. Extract a shared
+contract only when a named downstream adopter needs the same stable type or
+schema in at least two domains.
+
 ## Why this matters
 
 Healthcare capacity is non-fungible: the wrong bed, clinician, specialty,
