@@ -232,6 +232,7 @@ CORPUS -> SCORE -> TIER-SLA -> GAP -> CONCEPT -> REVIEW -> DESIGN
 - [`docs/vtrace/`](docs/vtrace)
 - [`context/waves/`](context/waves)
 - [`.roles/ROLE.md`](.roles/ROLE.md)
+- [`.pitfall/PITFALL.md`](.pitfall/PITFALL.md)
 
 ## License
 
