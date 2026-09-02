@@ -102,7 +102,7 @@ pack and summary.
 
 ## SHIELD-PF-05: Aggregate Baselines Become Public Access Finding
 
-**Status:** OPEN
+**Status:** MITIGATED
 
 **Pattern:** The complete CMS/USDA/HRSA public-source baselines are presented
 as a healthcare-access model, shortage map, hospital-staffing finding,
@@ -120,8 +120,14 @@ quality, cost, and release review remain future or held.
 
 **Structural solution:** Keep aggregate-only and no-authority language visible,
 require the next public-access claim to cite source grain, scale, demand basis,
-and full parliament/editorial review, and block facility/clinical/fiscal
-interpretation until explicit source and role evidence exists.
+allowed/blocked claims, held interpretations, downstream owner acceptance, and
+full parliament/editorial review, and block facility/clinical/fiscal
+interpretation until explicit source and role evidence exists. SHIELD now uses
+the public access claim boundary and `tests/check-public-access-claim-boundary.ps1`
+to keep that gate visible across adoption, VTRACE, roles, invariants, and public
+README surfaces.
 
 **Evidence:** `README.md`, `PRODUCT_PLAN.md`, `docs/adoption/README.md`,
-`docs/vtrace/REVIEW.md`, and `.roles/ROLE.md`.
+`docs/adoption/public-access-claim-boundary.md`,
+`docs/vtrace/VERIFICATION.md`, `docs/vtrace/REVIEW.md`, `.roles/ROLE.md`, and
+`tests/check-public-access-claim-boundary.ps1`.

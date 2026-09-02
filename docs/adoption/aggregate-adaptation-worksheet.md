@@ -35,3 +35,12 @@ sources:
 No patient records. No individual medical advice. Keep clinical, licensing,
 accreditation, Certificate-of-Need, payer, endorsement, and validation claims
 held unless separately source-backed and reviewed by an appropriate authority.
+
+## Public Access Claim Boundary
+
+`SHIELD-PF-05` blocks this worksheet from becoming more than aggregate-only
+scoping evidence until `public-access-claim-boundary.md` is complete. Record the
+artifact path, regeneration command, source owner, source vintage, source grain,
+residuals, geography scale, demand basis, allowed claim, blocked claims, held
+interpretations, parliament and editorial dispositions, and downstream owner
+acceptance before public promotion.

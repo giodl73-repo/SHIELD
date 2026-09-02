@@ -52,6 +52,14 @@ Archetype academic/practitioner peer reviewers for SHIELD research outputs. See 
 
 ---
 
+## PITFALL gates
+
+| Pitfall | Gate | Required roles |
+|---|---|---|
+| `SHIELD-PF-05` | Public access claim boundary. Blocks aggregate CMS, USDA, and HRSA baselines from promotion as an access model, shortage map, staffing finding, adequacy finding, intervention target, savings claim, HLT admission, clinical/facility/payer action, release-ready product, or endorsement until command, source grain, scale, demand basis, held claims, allowed/blocked claims, role dispositions, and downstream owner acceptance are visible. | Health-System Planner; Clinician / Care-Delivery Lead; Operations & Capacity Officer; Health Economist; Equity & Access Advocate; Public-Health & Prevention Advocate; Payer & Consolidation Realist; Citation Auditor; Scope Keeper; Numeracy Checker |
+
+---
+
 ## How reviews are recorded
 
 When a `docs/vtrace/` deliverable, corpus entry, gap finding, design proposal, or tier/SLA definition is being settled, the relevant subset of this panel is applied and dispositions are recorded in:

@@ -43,6 +43,14 @@ evidence-gated healthcare-access analysis. To scope a safe transfer test,
 source review, or aggregate-only local adaptation, start with
 [`docs/adoption/README.md`](docs/adoption/README.md).
 
+Before any aggregate baseline becomes a public access claim, use the
+[`public access claim boundary`](docs/adoption/public-access-claim-boundary.md).
+That boundary makes `SHIELD-PF-05` explicit: CMS, USDA, and HRSA outputs remain
+aggregate-only scoping evidence until the release record names the artifact
+path, regeneration command, source grain, scale, demand basis, held claims,
+seven parliament dispositions, three editorial dispositions, and downstream
+owner acceptance.
+
 ### Reuse boundary
 
 SHIELD is intentionally a domain-specific reference implementation, not a

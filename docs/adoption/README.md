@@ -30,6 +30,18 @@ Use [`aggregate-adaptation-worksheet.md`](aggregate-adaptation-worksheet.md) to
 scope one aggregate-only access, capacity, workforce, referral, affordability,
 continuity, equity, or surge-resilience question.
 
+Before that question becomes a promoted public claim, run the
+[`public access claim boundary`](public-access-claim-boundary.md). `SHIELD-PF-05`
+blocks baseline reuse as an access model, shortage map, staffing finding,
+adequacy finding, intervention target, savings claim, HLT admission, release
+product, clinical action, facility action, payer determination, or endorsement
+unless the release record includes source grain, scale, demand basis, held
+claims, downstream owner acceptance, and dispositions from Health-System Planner,
+Clinician / Care-Delivery Lead, Operations & Capacity Officer, Health Economist,
+Equity & Access Advocate, Public-Health & Prevention Advocate,
+Payer & Consolidation Realist, Citation Auditor, Scope Keeper, and Numeracy
+Checker.
+
 Do not use patient records. Do not produce individual medical advice. Do not
 turn transfer-strain evidence into a clinical recommendation.
 

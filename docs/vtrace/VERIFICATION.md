@@ -28,9 +28,9 @@ scoping, the review panel) are verified now. A method being named here does not 
 | REQ-006 | calibration record | inspect rubric version + calibration/transfer-suitability rationale | rubric changes are versioned and justified; non-transferring dimensions are recorded | pending | future EVID-006 |
 | REQ-007 | analysis / inspection | inspect capacity/adequacy claims for named demand + constraint basis | surge-vs-baseline and `DemandBasis::Surge` vs `DemandBasis::Baseline` named on each claim | pending | future EVID-007 |
 | REQ-008 | gap inspection / review | inspect an already-adequate or non-transferring-dimension artifact | null/transfer result recorded, no manufactured gap | pending | future EVID-008 |
-| REQ-009 | review inspection | confirm parliament + editorial gate ran on a promoted claim | review records exist with dispositions | pass_with_risk | EVID-009 (panel exists, not yet exercised on a corpus claim) |
-| REQ-010 | role review | confirm access/capacity/outcomes/referral/resilience/workforce/affordability/service breadth/assets/public-health/equity/benefit-cost/tier-SLA/payer-consolidation lenses represented | stakeholder lenses present in `.roles/` and applied | pass_with_risk | EVID-010 (`.roles/` panel built) |
-| REQ-011 | editorial review | inspect public claims for scope boundary | outputs framed as research/tooling/conceptual design | pass_with_risk | EVID-011 (`README`/`PRODUCT_PLAN`/`MISSION` non-goals) |
+| REQ-009 | review inspection | confirm parliament + editorial gate ran on a promoted claim | review records exist with dispositions | pass_with_risk | EVID-009 / EVID-PF-05 (panel exists; public access claim boundary blocks promotion until exercised) |
+| REQ-010 | role review | confirm access/capacity/outcomes/referral/resilience/workforce/affordability/service breadth/assets/public-health/equity/benefit-cost/tier-SLA/payer-consolidation lenses represented | stakeholder lenses present in `.roles/` and applied | pass_with_risk | EVID-010 / EVID-PF-05 (`.roles/` panel built and boundary names required roles) |
+| REQ-011 | editorial review | inspect public claims for scope boundary | outputs framed as research/tooling/conceptual design | pass_with_risk | EVID-011 / EVID-PF-05 (`README`/adoption boundary blocks public-authority promotion) |
 | REQ-012 | status inspection | repo-local scope inspection; confirm no TRACKER pointer dependency | SHIELD changes stay in the child repo | passed | EVID-012 |
 | REQ-013 | wave ledger / review | inspect wave ledger + pulses for one-stage/pulse discipline | each VTRACE stage settled to a fixed point in sequence | passed | EVID-013 |
 | REQ-014 | schema check / inspection | validate `tier` + `sla` frontmatter and tier model | every element classified T1–T4 with declared SLA | pending | future EVID-014 |
@@ -57,7 +57,7 @@ doc whitespace check
 |---|---|---|---|
 | L0 | Fast doc/sanity for the active VTRACE stage. | `proof check .`, `doc whitespace check` | passed |
 | L1 | Full repo confidence before push. | L0 + future `cargo fmt --check`, `cargo test` | partial (docs pass; no code yet) |
-| L2 | Readiness proof before a public claim. | corpus regeneration + `tier-sla --gate` + scale-filtered gap + role review | pending (greenfield) |
+| L2 | Readiness proof before a public claim. | corpus regeneration + `tier-sla --gate` + scale-filtered gap + role review + public access claim boundary | pass_with_risk (aggregate baselines exist; promotion blocked until claim-specific role dispositions are recorded) |
 
 ## Evidence Ledger
 
@@ -67,6 +67,7 @@ doc whitespace check
 | EVID-012 | inspection | repo-local scope inspection (no code, no TRACKER dependency) | REQ-012 | passed |
 | EVID-013 | review | `context/waves/2026-06-26-vtrace-foundation/` ledger + pulses | REQ-013 | passed |
 | EVID-009..011 | review | `.roles/` panel present and applied in stage reviews | REQ-009/010/011 | pass_with_risk |
+| EVID-PF-05 | policy check | `tests/check-public-access-claim-boundary.ps1` plus `docs/adoption/public-access-claim-boundary.md` | REQ-009/010/011 and `SHIELD-PF-05` | passed |
 | EVID-001..008, 014, 015, 016 | (pending) | implementation-dependent | REQ-001..008/014/015/016 | pending |
 
 ## Gaps
@@ -74,7 +75,7 @@ doc whitespace check
 | Gap | Impact | Disposition |
 |---|---|---|
 | No implementation/corpus exists yet. | Most `VER-*` cannot run; results are `pending`. | defer to implementation work packages |
-| Review gate not yet exercised on a real corpus claim. | REQ-009/010/011 are process-verified, not outcome-verified. | accept risk until first corpus entry |
+| Review gate not yet exercised on a promoted public-access claim. | REQ-009/010/011 are process-verified and boundary-guarded, not outcome-verified for public promotion. | mitigated by public access claim boundary; `REQ-009..011 remain` pass_with_risk until first promoted claim records role dispositions |
 | No `cargo` workspace yet. | L1 code checks unavailable. | defer to implementation wave |
 | Transfer-strain unknowns unresolved. | DIM-04/diverse-path semantics, single-score fairness, and capacity fungibility remain calibration risks. | accept/defer per SPEC-UNK-002..004 |
 

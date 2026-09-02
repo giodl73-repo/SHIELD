@@ -103,3 +103,25 @@ outputs, and no-authority assertions keep the packs non-admission artifacts.
 `context/waves/2026-07-31-cms-usda-rurality/WAVE.md`,
 `context/waves/2026-07-31-hrsa-primary-care-capacity/WAVE.md`, and
 `crates/shield-cms-access/src/lib.rs`.
+
+## SHIELD-I-06: Public Access Claims Require Release Evidence
+
+**Status:** VERIFIED
+
+**Claim:** CMS, USDA, and HRSA aggregate baselines remain aggregate-only
+scoping evidence until a public-access release record names artifact path,
+regeneration command, source grain, scale, demand basis, allowed and blocked
+claims, held interpretations, full role dispositions, and downstream owner
+acceptance.
+
+**Why it matters:** Reproducible healthcare denominators can still mislead a
+public reader if they are promoted as access, staffing, shortage, adequacy,
+intervention, savings, clinical, facility, payer, or endorsement findings.
+
+**Enforcement:** `SHIELD-PF-05` is guarded by the public access claim boundary,
+adoption worksheet, README/adoption/VTRACE wording, role gate, and policy check.
+
+**Evidence:** `docs/adoption/public-access-claim-boundary.md`,
+`docs/adoption/aggregate-adaptation-worksheet.md`, `README.md`,
+`docs/adoption/README.md`, `docs/vtrace/VERIFICATION.md`, `.roles/ROLE.md`, and
+`tests/check-public-access-claim-boundary.ps1`.
