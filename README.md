@@ -221,6 +221,32 @@ cargo test --workspace
 
 ## Method
 
+## Browser source explorer
+
+[Open SHIELD](https://giodl73-repo.github.io/SHIELD/) to query the frozen CMS
+hospital footprint by jurisdiction and inspect its national hospital-type and
+emergency-flag partitions. Switch to the CMS–USDA county-rurality join to keep
+the 72 unmatched facilities visible. Counts describe source registration and
+classification; patient access and care outcomes remain held and unestablished.
+
+The worker runs the unchanged native source validators and serializers through
+`shield-web`. Source fixtures, custody hashes, native baseline bytes, WASM,
+licenses and build provenance accompany the site. Queries stay in the browser.
+
+```sh
+cargo run -p shield-web --bin shield-browser -- fixtures/browser-national.json
+python tools/build-pages.py
+npm ci
+npx playwright install chromium
+npm test
+```
+
+The build requires the Rust toolchain/wasm32 target pinned in
+`rust-toolchain.toml`. See [WP-WEB-001](docs/vtrace/WP_WEB_001.md) for scope and
+verification. Native tests and six actual-WASM browser cases gate publication.
+
+## Native method
+
 ```text
 CORPUS -> SCORE -> TIER-SLA -> GAP -> CONCEPT -> REVIEW -> DESIGN
 ```

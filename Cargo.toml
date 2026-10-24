@@ -8,4 +8,12 @@ members = [
     "crates/shield-gap",
     "crates/shield-cms-access",
     "crates/shield-cli",
+    "crates/shield-web",
 ]
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
