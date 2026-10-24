@@ -302,6 +302,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "shield-web"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "shield-cms-access",
+]
+
+[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

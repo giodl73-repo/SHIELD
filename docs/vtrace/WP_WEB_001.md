@@ -78,3 +78,16 @@ No critical/major actionable finding remains in this contract. Repeat review
 at implementation exit; advance no existing clinical/fiscal hold. Rollback:
 revert source explorer and previous Pages artifact. Child commit/push precedes
 scoped TRACKER pointer update.
+
+## Implementation exit
+
+2026-10-23: 58 native workspace tests pass; workspace formatting, check and strict
+Clippy pass. Six actual-WASM browser cases pass, including canonical/native-byte
+parity for all three queries, independent source subset checks, rurality residual,
+unsupported queries, loading/failure, keyboard/mobile and source-custody routes.
+Desktop/mobile screenshots inspected. Artifact is approximately 426 KB locally.
+All existing source-core libraries remain unchanged. Implementing-agent role and
+stakeholder lenses repeated against the implementation: no critical/major
+actionable finding; named evidence defers above and all clinical/fiscal holds
+remain. Hosted checks gate master-only publication. TRACKER records exact live
+artifact identity and TAXLANE navigation before the pointer snapshot.

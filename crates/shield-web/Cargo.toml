@@ -1,0 +1,17 @@
+[package]
+name = "shield-web"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "shield-browser"
+path = "src/main.rs"
+
+[dependencies]
+shield-cms-access = { path = "../shield-cms-access" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

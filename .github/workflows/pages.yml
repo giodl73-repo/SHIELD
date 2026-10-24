@@ -1,0 +1,64 @@
+name: SHIELD frozen source explorer
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate the native shared core
+        run: |
+          rustup show
+          cargo fmt --all --check
+          cargo check --locked --workspace --all-targets
+          cargo test --locked --workspace --all-targets
+          cargo clippy --locked --workspace --all-targets -- -D warnings
+          cargo run --locked --quiet -p shield-web --bin shield-browser -- fixtures/browser-national.json
+      - name: Build actual WASM
+        timeout-minutes: 3
+        run: |
+          cargo clippy --locked -p shield-web --lib --target wasm32-unknown-unknown -- -D warnings
+          python tools/build-pages.py
+      - name: Install locked browser test packages
+        timeout-minutes: 3
+        run: npm ci --fetch-retries=1 --fetch-timeout=60000
+      - name: Install pinned Chromium
+        timeout-minutes: 5
+        # The hosted Ubuntu image supplies Chrome runtime libraries. Download
+        # Playwright's pinned browser without upgrading unrelated system packages.
+        run: npx playwright install chromium
+      - name: Exercise actual WASM in the browser
+        timeout-minutes: 4
+        run: npm test
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/SHIELD
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
