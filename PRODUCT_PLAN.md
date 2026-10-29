@@ -29,6 +29,14 @@ where infrastructure methods do not transfer cleanly.
   and 550 correctional designations, with exact FTE/shortage arithmetic and
   4,294 policy-excluded facility designations kept distinct from zero.
 
+The browser additionally exposes the existing frozen July 31 HRSA registry with
+status queries and fixed Designated cohort summaries, keeping June quarterly
+context separate. It reuses the native source validator/serializers without
+changing source data, methods or research status. Original raw CSV/PDF bytes are
+not in the portable bundle; aggregate custody and recorded historical raw hashes
+remain distinct. No all-status ID union, hospital assignment or cross-vintage
+trend is inferred. The provider/identity/staffed-service work below remains future.
+
 ## Next public work
 
 The facility, rurality, and formal shortage-registry baselines are complete.

@@ -147,3 +147,10 @@ Exit criteria: `cargo run -p shield-cli -- --help` lists product subcommands and
 | Operations Officer / Payer & Consolidation Realist | WP-001 makes the demand basis typed; WP-004 names it on DIM-13 conformance (REQ-007). | pass |
 
 Fixed-point note: no actionable finding required a change. Work packages are runnable and orphan-free. WP-001 is `ready`; the rest unblock in sequence. Transfer-strain risks from SPEC-UNK-002..004 remain calibration obligations, not hidden scope.
+
+## WP-WEB-002 — Frozen HRSA registry browser queries
+
+Accepted 2026-10-28; see [WP_WEB_002.md](WP_WEB_002.md) for contract and ten-role
+implementing-agent review. Add registry status queries through unchanged native
+source validators/serializers. Keep row/ID grain, fixed Designated cohorts and
+separate quarterly vintage; no source count, care finding or fiscal promotion.
