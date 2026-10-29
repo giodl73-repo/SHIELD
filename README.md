@@ -277,3 +277,13 @@ non-software content is licensed CC BY-NC 4.0 (copyright Gio Della-Libera);
 commercial use of that content requires separate written permission.
 Third-party material remains under its own terms.
 See [LICENSE](./LICENSE) for the complete notice.
+
+### Frozen geography browser
+
+The source explorer now includes the existing July 31 Designated geography
+bridge: select area/facility or an area component class while keeping rows,
+designation IDs, overlapping county keys, multiplicity and 18 invalid-key
+residuals distinct. No county map, whole-county shortage or CMS hospital match
+is inferred. See [geography grain and custody](docs/browser-geography-source.md)
+and [WP-WEB-003](docs/vtrace/WP_WEB_003.md). Original primary bytes remain absent
+from the portable bundle; derivative-file custody does not reverify them.

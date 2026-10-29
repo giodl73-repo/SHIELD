@@ -154,3 +154,9 @@ Accepted 2026-10-28; see [WP_WEB_002.md](WP_WEB_002.md) for contract and ten-rol
 implementing-agent review. Add registry status queries through unchanged native
 source validators/serializers. Keep row/ID grain, fixed Designated cohorts and
 separate quarterly vintage; no source count, care finding or fiscal promotion.
+
+## WP-WEB-003: Frozen geography browser
+
+Accepted 2026-10-29: [contract and role review](WP_WEB_003.md). Expose existing
+Designated component/cohort structure and residuals, retaining all source/identity/
+service holds. No source or research promotion.

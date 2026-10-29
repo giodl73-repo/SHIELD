@@ -10,6 +10,7 @@ pub enum View {
     Footprint,
     Rurality,
     Registry,
+    Geography,
 }
 
 #[derive(Debug, Deserialize)]
@@ -18,6 +19,7 @@ pub struct Query {
     pub view: View,
     pub jurisdiction: Option<String>,
     pub status: Option<String>,
+    pub geography_cohort: Option<String>,
 }
 
 pub fn evaluate(input: &str) -> Result<String, String> {
@@ -25,6 +27,12 @@ pub fn evaluate(input: &str) -> Result<String, String> {
         return Err("Use at most 64 KiB of source-query JSON".into());
     }
     let query: Query = serde_json::from_str(input).map_err(|error| error.to_string())?;
+    if query.view == View::Geography {
+        return geography(query);
+    }
+    if query.geography_cohort.is_some() {
+        return Err("A geography cohort is supported only in the geography view".into());
+    }
     if query.view == View::Registry {
         return registry(query);
     }
@@ -54,6 +62,7 @@ pub fn evaluate(input: &str) -> Result<String, String> {
             shield_cms_access::rurality_baseline_json(),
             shield_cms_access::rurality_held_pack_json(),
         ),
+        View::Geography => unreachable!("geography queries return before CMS loading"),
         View::Registry => unreachable!("registry queries return before CMS loading"),
     };
     let baseline_canonical = baseline_canonical.map_err(|error| error.to_string())?;
@@ -120,6 +129,67 @@ fn registry(query: Query) -> Result<String, String> {
     }))
     .map_err(|error| error.to_string())
 }
+
+fn geography(query: Query) -> Result<String, String> {
+    if query.jurisdiction.is_some() || query.status.is_some() {
+        return Err("The frozen geography bridge is Designated-only national context; status and jurisdiction filters are unsupported".into());
+    }
+    let source =
+        shield_cms_access::load_hrsa_geography_fixture().map_err(|error| error.to_string())?;
+    let (rows, ids, keys, residual) = match query.geography_cohort.as_deref() {
+        None => (
+            source.designated_component_rows,
+            source.designated_hpsa_ids,
+            source.distinct_valid_common_county_fips,
+            Some(source.geography_residual_rows),
+        ),
+        Some("Area designations") => (
+            source.area_designation_rows,
+            source.area_designation_ids,
+            source.area_distinct_valid_county_fips,
+            Some(source.area_geography_residual_rows),
+        ),
+        Some("Facility designations") => (
+            source.facility_designation_rows,
+            source.facility_designation_ids,
+            source.facility_distinct_valid_common_county_fips,
+            Some(source.facility_geography_residual_rows),
+        ),
+        Some(name) => {
+            let class = source
+                .component_classes
+                .get(name)
+                .ok_or_else(|| "Unknown cohort in this frozen geography bridge".to_string())?;
+            (
+                class.component_rows,
+                class.designation_ids,
+                class.distinct_valid_county_fips,
+                None,
+            )
+        }
+    };
+    let baseline_canonical =
+        shield_cms_access::hrsa_geography_baseline_json().map_err(|error| error.to_string())?;
+    let held_canonical =
+        shield_cms_access::hrsa_geography_held_pack_json().map_err(|error| error.to_string())?;
+    let baseline: Value =
+        serde_json::from_str(&baseline_canonical).map_err(|error| error.to_string())?;
+    let held: Value = serde_json::from_str(&held_canonical).map_err(|error| error.to_string())?;
+    let mut cohorts = vec!["Area designations", "Facility designations"];
+    cohorts.extend(source.component_classes.keys().map(String::as_str));
+    serde_json::to_string(&json!({
+        "schema":"shield.frozen-geography-explorer.v1","view":"geography",
+        "source_period":"HRSA daily CSV created 2026-07-31; Designated cohort only; frozen repository geography aggregate",
+        "projection":{"geography_cohort":query.geography_cohort,"component_rows":rows,"designation_ids":ids,"distinct_valid_county_keys":keys,"county_key_residual_rows":residual,
+            "whole_county_coverage":null,"registered_hospitals":null,"unique_affected_people":null,"actual_access":null,"staffed_capacity":null,"per_county_counts":null},
+        "native_baseline":baseline,"native_baseline_canonical":baseline_canonical,"held_pack":held,
+        "jurisdiction_keys":[],"geography_cohort_keys":cohorts,
+        "residual_partition":{"area_rows":source.area_geography_residual_rows,"facility_rows":source.facility_geography_residual_rows},
+        "portable_source_custody":{"aggregate_fixture":"geography-source.json","original_primary_bytes_in_bundle":false,"primary_hashes_reverified_by_this_work":false,"publisher_urls_may_return_newer_releases":true},
+        "authority":{"clinical":false,"designation":false,"workforce":false,"facility_action":false,"payer":false,"funding":false,"savings":false,"allocation":false,"rate_change":false}
+    })).map_err(|error|error.to_string())
+}
+
 pub fn response(input: &str) -> String {
     match evaluate(input){Ok(canonical)=>json!({"ok":true,"canonical":canonical,"result":serde_json::from_str::<Value>(&canonical).expect("serialized result")}).to_string(),Err(error)=>json!({"ok":false,"error":error}).to_string()}
 }
@@ -129,6 +199,97 @@ mod abi;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn geography_cohorts_preserve_rows_ids_and_non_additive_keys() {
+        for (cohort, rows, ids, keys, residual) in [
+            (None, 20368, 7682, 2932, Some(18)),
+            (Some("Area designations"), 15524, 2838, 2616, Some(0)),
+            (Some("Facility designations"), 4844, 4844, 1879, Some(18)),
+            (Some("Census Tract"), 11697, 586, 236, None),
+            (Some("County Subdivision"), 1579, 164, 149, None),
+            (Some("Single County"), 2248, 2088, 2248, None),
+        ] {
+            let result: Value = serde_json::from_str(
+                &evaluate(&json!({"view":"geography","geography_cohort":cohort}).to_string())
+                    .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(result["projection"]["component_rows"], rows);
+            assert_eq!(result["projection"]["designation_ids"], ids);
+            assert_eq!(result["projection"]["distinct_valid_county_keys"], keys);
+            assert_eq!(
+                result["projection"]["county_key_residual_rows"],
+                json!(residual)
+            );
+            assert_eq!(
+                result["native_baseline_canonical"],
+                shield_cms_access::hrsa_geography_baseline_json().unwrap()
+            );
+            assert_eq!(result["native_baseline"]["county_key"]["residual_rows"], 18);
+            assert_eq!(
+                result["native_baseline"]["area_designations"]["multi_county_ids"],
+                155
+            );
+            assert_eq!(
+                result["native_baseline"]["area_designations"]["component_classes"]
+                    ["Single County"]["multi_county_ids"],
+                89
+            );
+        }
+    }
+    #[test]
+    fn geography_context_does_not_promote_hospital_identity_or_service_authority() {
+        let result: Value =
+            serde_json::from_str(&evaluate(r#"{"view":"geography"}"#).unwrap()).unwrap();
+        for key in [
+            "whole_county_coverage",
+            "registered_hospitals",
+            "unique_affected_people",
+            "actual_access",
+            "staffed_capacity",
+            "per_county_counts",
+        ] {
+            assert!(result["projection"][key].is_null());
+        }
+        assert!(result["held_pack"]["service_floors"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(Value::is_null));
+        assert!(result["authority"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(|value| value == false));
+        assert_eq!(
+            result["held_pack"]["readiness"]["cms_facility_join_ready"],
+            false
+        );
+        assert_eq!(
+            result["held_pack"]["readiness"]["taxlane_admission_ready"],
+            false
+        );
+        assert_eq!(
+            result["portable_source_custody"]["original_primary_bytes_in_bundle"],
+            false
+        );
+    }
+    #[test]
+    fn geography_rejects_unsupported_grains_and_cross_view_cohorts() {
+        for input in [
+            r#"{"view":"geography","status":"Designated"}"#,
+            r#"{"view":"geography","jurisdiction":"CA"}"#,
+            r#"{"view":"geography","geography_cohort":"UNK"}"#,
+            r#"{"view":"geography","geography_cohort":""}"#,
+            r#"{"view":"geography","county_fips":"06001"}"#,
+            r#"{"view":"footprint","geography_cohort":"Census Tract"}"#,
+            r#"{"view":"rurality","geography_cohort":"Census Tract"}"#,
+            r#"{"view":"registry","geography_cohort":"Census Tract"}"#,
+        ] {
+            assert!(evaluate(input).is_err(), "{input}");
+        }
+    }
+
     #[test]
     fn registry_rows_are_not_an_invented_all_status_id_union() {
         let result: Value =
