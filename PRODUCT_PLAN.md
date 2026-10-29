@@ -8,8 +8,8 @@ where infrastructure methods do not transfer cleanly.
 
 ## Implemented product shape
 
-- Seven-crate Rust workspace: six shared analysis crates plus the feature-specific
-  `shield-cms-access` public-data result.
+- Eight-crate Rust workspace, including `shield-cms-access`, native CLI and the
+  `shield-web` portable browser adapter.
 - DIM-01..13 scale-aware evidence contracts.
 - Explicit transfer-strain and null-result posture.
 - A deterministic CMS-derived aggregate fixture; no patient records.
@@ -36,6 +36,11 @@ changing source data, methods or research status. Original raw CSV/PDF bytes are
 not in the portable bundle; aggregate custody and recorded historical raw hashes
 remain distinct. No all-status ID union, hospital assignment or cross-vintage
 trend is inferred. The provider/identity/staffed-service work below remains future.
+
+The geography browser also selects existing Designated area/facility and area
+component-class cohorts. County-key sets overlap, partial-area classes remain
+distinct and all 18 invalid-key residuals remain visible. No map, per-county
+coverage, CMS identity match or new primary-source verification is supplied.
 
 ## Next public work
 
