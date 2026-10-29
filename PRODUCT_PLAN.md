@@ -42,6 +42,12 @@ component-class cohorts. County-key sets overlap, partial-area classes remain
 distinct and all 18 invalid-key residuals remain visible. No map, per-county
 coverage, CMS identity match or new primary-source verification is supplied.
 
+The formula browser selects existing all-bearing, area, correctional and
+policy-excluded cohorts, preserves exact four-decimal FTE/shortage values and
+the signed population residual, and keeps exclusions null. Formula ratios do
+not establish unique workforce, NP/PA supply, staffed services or patient access.
+Original CSV/metadata bytes remain absent from the portable bundle.
+
 ## Next public work
 
 The facility, rurality, and formal shortage-registry baselines are complete.

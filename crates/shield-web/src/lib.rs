@@ -11,6 +11,7 @@ pub enum View {
     Rurality,
     Registry,
     Geography,
+    Capacity,
 }
 
 #[derive(Debug, Deserialize)]
@@ -20,6 +21,7 @@ pub struct Query {
     pub jurisdiction: Option<String>,
     pub status: Option<String>,
     pub geography_cohort: Option<String>,
+    pub capacity_cohort: Option<String>,
 }
 
 pub fn evaluate(input: &str) -> Result<String, String> {
@@ -27,6 +29,12 @@ pub fn evaluate(input: &str) -> Result<String, String> {
         return Err("Use at most 64 KiB of source-query JSON".into());
     }
     let query: Query = serde_json::from_str(input).map_err(|error| error.to_string())?;
+    if query.view == View::Capacity {
+        return capacity(query);
+    }
+    if query.capacity_cohort.is_some() {
+        return Err("A capacity cohort is supported only in the capacity view".into());
+    }
     if query.view == View::Geography {
         return geography(query);
     }
@@ -62,6 +70,7 @@ pub fn evaluate(input: &str) -> Result<String, String> {
             shield_cms_access::rurality_baseline_json(),
             shield_cms_access::rurality_held_pack_json(),
         ),
+        View::Capacity => unreachable!("capacity queries return before CMS loading"),
         View::Geography => unreachable!("geography queries return before CMS loading"),
         View::Registry => unreachable!("registry queries return before CMS loading"),
     };
@@ -190,6 +199,95 @@ fn geography(query: Query) -> Result<String, String> {
     })).map_err(|error|error.to_string())
 }
 
+fn capacity_row(
+    label: &str,
+    ids: u64,
+    fte: Option<u64>,
+    shortage: Option<u64>,
+    bps: Option<u64>,
+) -> Value {
+    let decimal = |value: u64| format!("{}.{:04}", value / 10_000, value % 10_000);
+    json!({"cohort_label":label,"designation_ids":ids,"fte_e4":fte,"shortage_e4":shortage,"derived_need_met_bps":bps,
+        "fte_display":fte.map(decimal),"shortage_display":shortage.map(decimal),
+        "need_met_display":bps.map(|value|format!("{}.{:02}%",value/100,value%100))})
+}
+fn capacity(query: Query) -> Result<String, String> {
+    if query.jurisdiction.is_some() || query.status.is_some() || query.geography_cohort.is_some() {
+        return Err("The frozen capacity baseline is Designated-only national formula context; status, jurisdiction and geography filters are unsupported".into());
+    }
+    let source =
+        shield_cms_access::load_hrsa_capacity_fixture().map_err(|error| error.to_string())?;
+    let selected = match query.capacity_cohort.as_deref() {
+        None => 0,
+        Some("Area designations") => 1,
+        Some("Correctional designations") => 2,
+        Some("Policy-excluded facilities") => 3,
+        Some(_) => return Err("Unknown cohort in this frozen designation-formula baseline".into()),
+    };
+    let rows = vec![
+        capacity_row(
+            "All formula-bearing designations",
+            source.capacity_bearing_designation_ids,
+            Some(source.designation_recorded_fte_e4),
+            Some(source.designation_recorded_shortage_e4),
+            Some(source.designation_recorded_need_met_bps),
+        ),
+        capacity_row(
+            "Area designations",
+            source.area_capacity_designation_ids,
+            Some(source.area_recorded_fte_e4),
+            Some(source.area_recorded_shortage_e4),
+            Some(source.area_need_met_bps),
+        ),
+        capacity_row(
+            "Correctional designations",
+            source.correctional_capacity_designation_ids,
+            Some(source.correctional_recorded_fte_e4),
+            Some(source.correctional_recorded_shortage_e4),
+            Some(source.correctional_need_met_bps),
+        ),
+        capacity_row(
+            "Policy-excluded facilities",
+            source.capacity_excluded_designation_ids,
+            None,
+            None,
+            None,
+        ),
+    ];
+    let mut projection = rows[selected].clone();
+    projection["capacity_cohort"] = json!(query.capacity_cohort);
+    for key in [
+        "unique_physician_supply",
+        "unique_affected_people",
+        "cms_hospital_staffing",
+        "staffed_service_lines",
+        "actual_access",
+        "adequacy",
+        "fiscal_savings",
+    ] {
+        projection[key] = Value::Null;
+    }
+    let baseline_canonical =
+        shield_cms_access::hrsa_capacity_baseline_json().map_err(|error| error.to_string())?;
+    let held_canonical =
+        shield_cms_access::hrsa_capacity_held_pack_json().map_err(|error| error.to_string())?;
+    let baseline: Value =
+        serde_json::from_str(&baseline_canonical).map_err(|error| error.to_string())?;
+    let held: Value = serde_json::from_str(&held_canonical).map_err(|error| error.to_string())?;
+    serde_json::to_string(&json!({
+        "schema":"shield.frozen-capacity-explorer.v1","view":"capacity",
+        "source_period":"HRSA daily CSV created 2026-07-31; Designated HPSA-ID formula/exclusion cohorts; frozen repository aggregate",
+        "projection":projection,"fixed_formula_rows":rows,
+        "native_baseline":baseline,"native_baseline_canonical":baseline_canonical,"held_pack":held,
+        "jurisdiction_keys":[],"capacity_cohort_keys":["Area designations","Correctional designations","Policy-excluded facilities"],
+        "area_formula_checks":{"served_within_half_person_ids":source.area_served_formula_within_half_person_ids,"shortage_within_one_hundredth_fte_ids":source.area_shortage_formula_within_one_hundredth_fte_ids},
+        "field_coverage":{"fte_present_ids":source.fte_present_designation_ids,"shortage_present_ids":source.shortage_present_designation_ids,"excluded_population_present_ids":source.capacity_excluded_population_present_ids,"excluded_population_missing_ids":source.capacity_excluded_population_missing_ids},
+        "supply_boundaries":{"unique_physician_supply_ready":source.unique_physician_supply_ready,"np_pa_supply_included":source.nurse_practitioner_and_physician_assistant_supply_included,"cms_facility_capacity_ready":source.cms_facility_capacity_ready,"patient_access_ready":source.patient_access_ready},
+        "portable_source_custody":{"aggregate_fixture":"capacity-source.json","original_primary_bytes_in_bundle":false,"primary_hashes_reverified_by_this_work":false,"publisher_urls_may_return_newer_releases":true},
+        "authority":{"clinical":false,"designation":false,"workforce":false,"facility_action":false,"payer":false,"funding":false,"savings":false,"allocation":false,"rate_change":false}
+    })).map_err(|error|error.to_string())
+}
+
 pub fn response(input: &str) -> String {
     match evaluate(input){Ok(canonical)=>json!({"ok":true,"canonical":canonical,"result":serde_json::from_str::<Value>(&canonical).expect("serialized result")}).to_string(),Err(error)=>json!({"ok":false,"error":error}).to_string()}
 }
@@ -199,6 +297,132 @@ mod abi;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn capacity_cohorts_keep_exact_values_and_exclusions_null() {
+        for (cohort, ids, fte, shortage, bps, display) in [
+            (
+                None,
+                3388,
+                Some(106354884),
+                Some(122670916),
+                Some(4644),
+                Some("10635.4884"),
+            ),
+            (
+                Some("Area designations"),
+                2838,
+                Some(103273034),
+                Some(114984866),
+                Some(4732),
+                Some("10327.3034"),
+            ),
+            (
+                Some("Correctional designations"),
+                550,
+                Some(3081850),
+                Some(7686050),
+                Some(2862),
+                Some("308.1850"),
+            ),
+            (
+                Some("Policy-excluded facilities"),
+                4294,
+                None,
+                None,
+                None,
+                None,
+            ),
+        ] {
+            let result: Value = serde_json::from_str(
+                &evaluate(&json!({"view":"capacity","capacity_cohort":cohort}).to_string())
+                    .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(result["projection"]["designation_ids"], ids);
+            assert_eq!(result["projection"]["fte_e4"], json!(fte));
+            assert_eq!(result["projection"]["shortage_e4"], json!(shortage));
+            assert_eq!(result["projection"]["derived_need_met_bps"], json!(bps));
+            assert_eq!(result["projection"]["fte_display"], json!(display));
+            assert_eq!(
+                result["native_baseline_canonical"],
+                shield_cms_access::hrsa_capacity_baseline_json().unwrap()
+            );
+            assert_eq!(
+                result["native_baseline"]["area_formula"]["population_identity_residual_people"],
+                -1
+            );
+            assert_eq!(result["fixed_formula_rows"].as_array().unwrap().len(), 4);
+        }
+    }
+    #[test]
+    fn capacity_formulas_do_not_establish_unique_workforce_or_staffed_care() {
+        let result: Value =
+            serde_json::from_str(&evaluate(r#"{"view":"capacity"}"#).unwrap()).unwrap();
+        for key in [
+            "unique_physician_supply",
+            "unique_affected_people",
+            "cms_hospital_staffing",
+            "staffed_service_lines",
+            "actual_access",
+            "adequacy",
+            "fiscal_savings",
+        ] {
+            assert!(result["projection"][key].is_null());
+        }
+        assert!(result["supply_boundaries"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(|value| value == false));
+        assert!(result["authority"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(|value| value == false));
+        assert!(result["held_pack"]["service_floors"]
+            .as_object()
+            .unwrap()
+            .values()
+            .all(Value::is_null));
+        assert_eq!(
+            result["held_pack"]["readiness"]["taxlane_admission_ready"],
+            false
+        );
+        assert_eq!(
+            result["native_baseline"]["designation_recorded_capacity"]["fte_zero_ids"],
+            805
+        );
+        assert_eq!(
+            result["native_baseline"]["designation_recorded_capacity"]["shortage_zero_ids"],
+            1
+        );
+        assert_eq!(
+            result["area_formula_checks"]["served_within_half_person_ids"],
+            2838
+        );
+        assert_eq!(
+            result["field_coverage"]["excluded_population_missing_ids"],
+            10
+        );
+    }
+    #[test]
+    fn capacity_rejects_cross_view_filters_and_unsupported_grains() {
+        for input in [
+            r#"{"view":"capacity","status":"Designated"}"#,
+            r#"{"view":"capacity","jurisdiction":"CA"}"#,
+            r#"{"view":"capacity","geography_cohort":"Area designations"}"#,
+            r#"{"view":"capacity","capacity_cohort":""}"#,
+            r#"{"view":"capacity","capacity_cohort":"all"}"#,
+            r#"{"view":"capacity","provider_id":"example"}"#,
+            r#"{"view":"footprint","capacity_cohort":"Area designations"}"#,
+            r#"{"view":"rurality","capacity_cohort":"Area designations"}"#,
+            r#"{"view":"registry","capacity_cohort":"Area designations"}"#,
+            r#"{"view":"geography","capacity_cohort":"Area designations"}"#,
+        ] {
+            assert!(evaluate(input).is_err(), "{input}");
+        }
+    }
+
     #[test]
     fn geography_cohorts_preserve_rows_ids_and_non_additive_keys() {
         for (cohort, rows, ids, keys, residual) in [
