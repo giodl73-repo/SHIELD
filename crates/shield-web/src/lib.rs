@@ -9,6 +9,7 @@ pub const MAX_INPUT_BYTES: usize = 65_536;
 pub enum View {
     Footprint,
     Rurality,
+    Registry,
 }
 
 #[derive(Debug, Deserialize)]
@@ -16,6 +17,7 @@ pub enum View {
 pub struct Query {
     pub view: View,
     pub jurisdiction: Option<String>,
+    pub status: Option<String>,
 }
 
 pub fn evaluate(input: &str) -> Result<String, String> {
@@ -23,6 +25,12 @@ pub fn evaluate(input: &str) -> Result<String, String> {
         return Err("Use at most 64 KiB of source-query JSON".into());
     }
     let query: Query = serde_json::from_str(input).map_err(|error| error.to_string())?;
+    if query.view == View::Registry {
+        return registry(query);
+    }
+    if query.status.is_some() {
+        return Err("A registry status filter is supported only in the registry view".into());
+    }
     let footprint = shield_cms_access::load_fixture().map_err(|error| error.to_string())?;
     if footprint.total_facilities == 0 {
         return Err("The source denominator is not established".into());
@@ -46,6 +54,7 @@ pub fn evaluate(input: &str) -> Result<String, String> {
             shield_cms_access::rurality_baseline_json(),
             shield_cms_access::rurality_held_pack_json(),
         ),
+        View::Registry => unreachable!("registry queries return before CMS loading"),
     };
     let baseline_canonical = baseline_canonical.map_err(|error| error.to_string())?;
     let held_canonical = held_canonical.map_err(|error| error.to_string())?;
@@ -68,6 +77,49 @@ pub fn evaluate(input: &str) -> Result<String, String> {
         "authority":{"clinical":false,"facility_action":false,"payer":false,"savings":false,"allocation":false,"rate_change":false}
     })).map_err(|error|error.to_string())
 }
+
+fn registry(query: Query) -> Result<String, String> {
+    if query.jurisdiction.is_some() {
+        return Err("The frozen registry has a national status grain; no jurisdiction cross-tab is established".into());
+    }
+    let source =
+        shield_cms_access::load_hrsa_primary_care_fixture().map_err(|error| error.to_string())?;
+    let selected = query
+        .status
+        .as_ref()
+        .map(|status| {
+            source
+                .status_counts
+                .get(status)
+                .ok_or_else(|| "Unknown status in this frozen registry".to_string())
+        })
+        .transpose()?;
+    let baseline_canonical =
+        shield_cms_access::hrsa_primary_care_baseline_json().map_err(|error| error.to_string())?;
+    let held_canonical =
+        shield_cms_access::hrsa_primary_care_held_pack_json().map_err(|error| error.to_string())?;
+    let baseline: Value =
+        serde_json::from_str(&baseline_canonical).map_err(|error| error.to_string())?;
+    let held: Value = serde_json::from_str(&held_canonical).map_err(|error| error.to_string())?;
+    serde_json::to_string(&json!({
+        "schema":"shield.frozen-registry-explorer.v1","view":"registry",
+        "source_period":"HRSA daily CSV created 2026-07-31; quarterly designations as of 2026-06-30, data as of 2026-07-01; frozen repository aggregate",
+        "projection":{
+            "status":query.status,
+            "component_rows":selected.map_or(source.csv_component_rows,|count|count.component_rows),
+            "unique_designations_within_status":selected.map(|count|count.unique_designations),
+            "all_status_unique_designations":null,"registered_hospitals":null,"unique_affected_people":null,
+            "actual_access":null,"staffed_capacity":null,"status_by_type":null,"status_by_rurality":null,
+            "cross_vintage_comparison":null,
+            "interpretation":"component rows are not designations; IDs are counted within a selected status, not summed across statuses; Designated partitions stay separate from the selected status"
+        },
+        "native_baseline":baseline,"native_baseline_canonical":baseline_canonical,"held_pack":held,
+        "jurisdiction_keys":[],"registry_status_keys":source.status_counts.keys().collect::<Vec<_>>(),
+        "portable_source_custody":{"aggregate_fixture":"registry-source.json","original_primary_bytes_in_bundle":false,"primary_hashes_reverified_by_this_work":false,"publisher_urls_may_return_newer_releases":true},
+        "authority":{"clinical":false,"designation":false,"workforce":false,"facility_action":false,"payer":false,"funding":false,"savings":false,"allocation":false,"rate_change":false}
+    }))
+    .map_err(|error| error.to_string())
+}
 pub fn response(input: &str) -> String {
     match evaluate(input){Ok(canonical)=>json!({"ok":true,"canonical":canonical,"result":serde_json::from_str::<Value>(&canonical).expect("serialized result")}).to_string(),Err(error)=>json!({"ok":false,"error":error}).to_string()}
 }
@@ -77,6 +129,89 @@ mod abi;
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn registry_rows_are_not_an_invented_all_status_id_union() {
+        let result: Value =
+            serde_json::from_str(&evaluate(r#"{"view":"registry","jurisdiction":null}"#).unwrap())
+                .unwrap();
+        assert_eq!(result["projection"]["component_rows"], 79150);
+        assert!(result["projection"]["unique_designations_within_status"].is_null());
+        assert!(result["projection"]["all_status_unique_designations"].is_null());
+        assert_eq!(
+            result["native_baseline_canonical"],
+            shield_cms_access::hrsa_primary_care_baseline_json().unwrap()
+        );
+        assert_eq!(
+            result["native_baseline"]["quarterly_context"]["summary"]["total_designations"],
+            9003
+        );
+        assert_eq!(
+            result["native_baseline"]["quarterly_context"]["cross_vintage_reconciliation_ready"],
+            false
+        );
+        assert!(result["projection"]["cross_vintage_comparison"].is_null());
+    }
+
+    #[test]
+    fn each_registry_status_preserves_fixed_designated_cohorts_and_holds() {
+        for (status, rows, ids) in [
+            ("Designated", 20368, 7682),
+            ("Proposed For Withdrawal", 9962, 1014),
+            ("Withdrawn", 48820, 8999),
+        ] {
+            let result: Value = serde_json::from_str(
+                &evaluate(
+                    &json!({"view":"registry","jurisdiction":null,"status":status}).to_string(),
+                )
+                .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(result["projection"]["component_rows"], rows);
+            assert_eq!(
+                result["projection"]["unique_designations_within_status"],
+                ids
+            );
+            assert_eq!(
+                result["native_baseline"]["current_registry"]["designated_multi_component_ids"],
+                762
+            );
+            assert_eq!(
+                result["native_baseline"]["current_registry"]["designated_multi_rural_status_ids"],
+                282
+            );
+            assert!(result["projection"]["status_by_type"].is_null());
+            assert!(result["projection"]["status_by_rurality"].is_null());
+            assert!(result["projection"]["registered_hospitals"].is_null());
+            assert!(result["held_pack"]["service_floors"]
+                .as_object()
+                .unwrap()
+                .values()
+                .all(Value::is_null));
+            assert_eq!(
+                result["held_pack"]["readiness"]["taxlane_admission_ready"],
+                false
+            );
+            assert!(result["authority"]
+                .as_object()
+                .unwrap()
+                .values()
+                .all(|value| value == false));
+        }
+    }
+
+    #[test]
+    fn registry_status_and_jurisdiction_filters_do_not_cross_source_grains() {
+        for input in [
+            r#"{"view":"registry","jurisdiction":"CA"}"#,
+            r#"{"view":"registry","jurisdiction":null,"status":"Unknown"}"#,
+            r#"{"view":"registry","jurisdiction":null,"status":""}"#,
+            r#"{"view":"footprint","jurisdiction":null,"status":"Designated"}"#,
+            r#"{"view":"rurality","jurisdiction":null,"status":"Withdrawn"}"#,
+            r#"{"view":"registry","jurisdiction":null,"facility_id":"example"}"#,
+        ] {
+            assert!(evaluate(input).is_err(), "{input}");
+        }
+    }
     #[test]
     fn preserves_native_baseline_and_held_pack() {
         let result: Value =

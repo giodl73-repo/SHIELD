@@ -229,6 +229,15 @@ emergency-flag partitions. Switch to the CMS–USDA county-rurality join to keep
 the 72 unmatched facilities visible. Counts describe source registration and
 classification; patient access and care outcomes remain held and unestablished.
 
+The registry view now queries the frozen July 31, 2026 primary-care HPSA status
+rows and within-status designation IDs. Designated type/rural-status summaries
+remain fixed cohorts. The June 30 quarterly summary stays separately dated;
+no all-status ID union, cross-vintage trend, hospital assignment, unique people
+or staffed-care result is inferred. Original CSV/PDF hashes are recorded context,
+not newly reverified bytes or bundled originals; publisher links may now change.
+See [the registry source note](docs/browser-registry-source.md) and
+[WP-WEB-002](docs/vtrace/WP_WEB_002.md).
+
 The worker runs the unchanged native source validators and serializers through
 `shield-web`. Source fixtures, custody hashes, native baseline bytes, WASM,
 licenses and build provenance accompany the site. Queries stay in the browser.
