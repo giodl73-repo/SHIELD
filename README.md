@@ -287,3 +287,12 @@ residuals distinct. No county map, whole-county shortage or CMS hospital match
 is inferred. See [geography grain and custody](docs/browser-geography-source.md)
 and [WP-WEB-003](docs/vtrace/WP_WEB_003.md). Original primary bytes remain absent
 from the portable bundle; derivative-file custody does not reverify them.
+
+### Frozen designation-formula browser
+
+The source explorer also selects the existing July 31 formula-bearing, area,
+correctional or policy-excluded cohorts. Exact four-decimal FTE/shortage values,
+observed zeros, policy-excluded nulls and the signed population-formula residual
+stay distinct. Values are designation-recorded, not unique workforce, staffed
+care or patient access; NP/PA supply is omitted. See [formula grain and custody](docs/browser-capacity-source.md) and [WP-WEB-004](docs/vtrace/WP_WEB_004.md).
+Original primary CSV/metadata bytes remain absent and are not newly verified.

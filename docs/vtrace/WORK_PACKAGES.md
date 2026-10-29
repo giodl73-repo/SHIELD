@@ -160,3 +160,9 @@ separate quarterly vintage; no source count, care finding or fiscal promotion.
 Accepted 2026-10-29: [contract and role review](WP_WEB_003.md). Expose existing
 Designated component/cohort structure and residuals, retaining all source/identity/
 service holds. No source or research promotion.
+
+## WP-WEB-004: Frozen designation-formula capacity browser
+
+Accepted 2026-10-29: [contract and role review](WP_WEB_004.md). Expose unchanged
+formula/exclusion cohorts, exact quantities and residuals; retain workforce/
+service/fiscal holds. No source or research promotion.
